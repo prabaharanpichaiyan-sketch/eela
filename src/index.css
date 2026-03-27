@@ -1,0 +1,543 @@
+:root {
+  /* New Palette based on Docdam */
+  --color-bg: #F3F4F6;
+  --color-surface: #FFFFFF;
+  
+  --color-primary: #3B82F6; /* Royal Blue */
+  --color-primary-dark: #2563EB;
+  --color-secondary: #E5E7EB; /* Light Gray for secondary buttons */
+  
+  --color-text: #1F2937; /* Dark Gray */
+  --color-text-muted: #9CA3AF;
+  
+  --color-sidebar-bg: #111827; /* Very Dark Blue/Black */
+  --color-sidebar-text: #9CA3AF;
+  --color-sidebar-text-active: #FFFFFF;
+
+  --color-danger: #EF4444;
+  --color-success: #10B981;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 80px; /* Space for bottom nav on mobile */
+}
+
+/* Base Navigation (Mobile First - Bottom Nav) */
+.main-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: var(--color-sidebar-bg); /* Dark background even on mobile? Or stick to white? Let's go dark for consistency per user request */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-sidebar-text);
+  font-size: 0.75rem;
+  gap: 4px;
+  padding: 8px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+
+.nav-item.active {
+  color: var(--color-primary); /* On mobile, just color change might be enough */
+}
+
+.content-area {
+  padding: 20px;
+  max-width: 1000px; /* Bit wider */
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;
+}
+
+/* Desktop Responsiveness - The main restyle target */
+@media (min-width: 768px) {
+  .app-container {
+    flex-direction: row;
+    padding-bottom: 0;
+  }
+
+  .main-nav {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 260px; /* Slightly wider sidebar */
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch; /* Stretch items to fill width */
+    padding: 32px 16px;
+    border-right: none; /* Removed border, using contrast */
+    box-shadow: var(--shadow-md);
+    background: var(--color-sidebar-bg);
+  }
+
+  .nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+    color: var(--color-sidebar-text);
+  }
+
+  .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-sidebar-text-active);
+  }
+
+  .nav-item.active {
+    background-color: var(--color-primary);
+    color: white; /* White text on blue background */
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); /* Blue shadow */
+  }
+
+  .content-area {
+    margin: 0;
+    max-width: 1400px;
+    padding: 40px;
+    background-color: var(--color-bg);
+  }
+}
+
+h1, h2, h3 {
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.025em; /* Tighter tracking for modern look */
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg); /* Larger radius */
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(0,0,0,0.03); /* Very subtle border */
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Removed hover lift for cleaner, flatter look, or keep it very subtle */
+/* .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+} */
+
+button.primary {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+button.primary:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+button.secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button.secondary:hover {
+  opacity: 0.8;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--color-text); /* Darker label */
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  background: #F9FAFB;
+  transition: all 0.2s;
+  color: var(--color-text);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Utilities */
+.text-muted { color: var(--color-text-muted); }
+.mb-6 { margin-bottom: 24px; }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--color-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--color-text);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-secondary);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Responsive Create Order Modal */
+.create-order-layout {
+  display: flex;
+  gap: 24px;
+}
+
+.create-order-products {
+  flex: 1;
+  min-width: 0;
+}
+
+.create-order-cart {
+  width: 320px;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 24px;
+}
+
+.create-order-header {
+  display: flex;
+  gap: 24px;
+}
+
+.payment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .create-order-layout {
+    flex-direction: column;
+  }
+  
+  .create-order-cart {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+    padding-left: 0;
+    padding-top: 24px;
+  }
+
+  .create-order-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .payment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ensure modal uses full width on mobile */
+  .modal-content {
+    max-width: 95vw !important;
+  }
+}
+
+/* --- New Collapsible Sidebar Styles --- */
+.app-sidebar {
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+}
+
+.app-sidebar.expanded {
+  width: 260px;
+}
+
+.app-sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar-header {
+  padding: 24px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+  min-height: 88px;
+}
+
+.app-sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.logo-icon {
+  background: #10b981; /* Green from the design */
+  color: white;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #10b981;
+  white-space: nowrap;
+}
+
+.sidebar-toggle-container {
+  display: flex;
+  padding: 16px;
+}
+
+.app-sidebar.collapsed .sidebar-toggle-container {
+  justify-content: center;
+}
+
+.app-sidebar.expanded .sidebar-toggle-container {
+  justify-content: flex-end;
+}
+
+.sidebar-toggle-btn {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.app-sidebar.collapsed .sidebar-nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar-nav-item:hover:not(.active) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.sidebar-nav-item.active {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.logout-btn {
+  color: #ef4444;
+}
+
+.logout-btn:hover:not(.active) {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Hide desktop sidebar on mobile */
+@media (max-width: 767px) {
+  .app-sidebar {
+    display: none;
+  }
+}
