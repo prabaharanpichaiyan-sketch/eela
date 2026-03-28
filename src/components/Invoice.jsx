@@ -1,17 +1,7 @@
 import React from 'react';
 
 const LogoSVG = () => (
-    <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="48" stroke="#1f2937" strokeWidth="2" fill="none"/>
-        <circle cx="50" cy="30" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="50" cy="70" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="30" cy="50" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="70" cy="50" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="35" cy="35" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="65" cy="65" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="65" cy="35" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-        <circle cx="35" cy="65" r="28" stroke="#1f2937" strokeWidth="1.5" fill="none"/>
-    </svg>
+    <img src="/eela-logo.jpeg" alt="Eela Logo" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} />
 );
 
 const Invoice = ({ order, formatCurrency = (val) => `₹${val.toFixed(2)}` }) => {

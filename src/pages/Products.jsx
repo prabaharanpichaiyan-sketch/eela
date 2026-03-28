@@ -199,15 +199,18 @@ const Products = () => {
                 onClose={resetForm}
                 title={isEditing ? 'Edit Product' : 'Create New Product'}
                 closeOnOverlayClick={false}
+                maxWidth="900px"
             >
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Product Name</label>
-                        <input required value={formData.ProductName} onChange={e => setFormData({ ...formData, ProductName: e.target.value })} />
-                    </div>
-                    <div className="form-group">
-                        <label>Description</label>
-                        <input value={formData.Description} onChange={e => setFormData({ ...formData, Description: e.target.value })} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="form-group">
+                            <label>Product Name</label>
+                            <input required value={formData.ProductName} onChange={e => setFormData({ ...formData, ProductName: e.target.value })} />
+                        </div>
+                        <div className="form-group">
+                            <label>Description</label>
+                            <input value={formData.Description} onChange={e => setFormData({ ...formData, Description: e.target.value })} />
+                        </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

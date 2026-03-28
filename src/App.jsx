@@ -13,11 +13,13 @@ import CustomerLedger from './pages/CustomerLedger';
 import CustomerOrderHistory from './pages/CustomerOrderHistory';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
+import Users from './pages/Users';
+import { AuthContext } from './contexts/AuthContext';
 import Sidebar from './components/Sidebar';
 
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { currentUser } = React.useContext(AuthContext);
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const renderContent = () => {
@@ -31,12 +33,13 @@ function App() {
             case 'ledger': return <CustomerLedger />;
             case 'history': return <CustomerOrderHistory />;
             case 'reports': return <Reports />;
+            case 'users': return currentUser?.role === 'admin' ? <Users /> : <Dashboard />;
             default: return <Dashboard />;
         }
     };
 
-    if (!isAuthenticated) {
-        return <Login onLogin={() => setIsAuthenticated(true)} />;
+    if (!currentUser) {
+        return <Login />;
     }
 
     return (
@@ -48,7 +51,6 @@ function App() {
                         <Sidebar 
                             activeTab={activeTab} 
                             setActiveTab={setActiveTab} 
-                            onLogout={() => setIsAuthenticated(false)} 
                         />
                         <main className="content-area">
                             {renderContent()}

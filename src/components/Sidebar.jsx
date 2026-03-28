@@ -12,11 +12,13 @@ import {
     ChevronRight,
     ChevronLeft,
     ChefHat,
-    Plane
+    Shield
 } from 'lucide-react';
+import { AuthContext } from '../contexts/AuthContext';
 
-const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
+const Sidebar = ({ activeTab, setActiveTab }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { currentUser, logout } = React.useContext(AuthContext);
 
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,13 +31,15 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         { id: 'reports', label: 'Reports', icon: BarChart3 },
     ];
 
+    if (currentUser?.role === 'admin') {
+        navItems.push({ id: 'users', label: 'User Mgmt', icon: Shield });
+    }
+
     return (
         <aside className={`app-sidebar ${isExpanded ? 'expanded' : 'collapsed'}`}>
             <div className="sidebar-header" style={isExpanded ? { justifyContent: 'space-between' } : { justifyContent: 'center' }}>
                 <div className="logo-container">
-                    <div className="logo-icon">
-                        <Plane size={20} />
-                    </div>
+                    <img src="/eela-logo.jpeg" alt="Eela Logo" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }} />
                     {isExpanded && <span className="logo-text">eela</span>}
                 </div>
                 {isExpanded && (
@@ -71,9 +75,12 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
             </nav>
 
             <div className="sidebar-footer">
+                <div style={{ padding: '0 16px 16px 16px', color: 'var(--color-text-muted)', fontSize: '0.8rem', textAlign: isExpanded ? 'left' : 'center', borderBottom: '1px solid var(--color-border)', marginBottom: '16px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {isExpanded ? (<b>{currentUser?.username}</b>) : (<b>{currentUser?.username?.charAt(0)}</b>)}
+                </div>
                 <button
                     className="sidebar-nav-item logout-btn"
-                    onClick={onLogout}
+                    onClick={logout}
                     title={!isExpanded ? 'Logout' : ''}
                 >
                     <LogOut size={20} />

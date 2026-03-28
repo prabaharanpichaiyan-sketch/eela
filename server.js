@@ -3,6 +3,7 @@ import cors from 'cors';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,16 @@ db.pragma('foreign_keys = ON');
 // Initialize schema
 const initDb = () => {
     db.exec(`
+        CREATE TABLE IF NOT EXISTS Users (
+            id TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            passwordHash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            role TEXT DEFAULT 'staff',
+            isActive INTEGER DEFAULT 1,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
         CREATE TABLE IF NOT EXISTS Inventory (
             id TEXT PRIMARY KEY,
             IngredientName TEXT NOT NULL,
@@ -77,6 +88,92 @@ const generateId = () => {
     }
     return autoId;
 };
+
+// Password hashing utility
+const hashPassword = (password, salt) => {
+    return crypto.scryptSync(password, salt, 64).toString('hex');
+};
+const generateSalt = () => crypto.randomBytes(16).toString('hex');
+
+// Seed default admin if Users table is empty
+const seedAdmin = () => {
+    const userCount = db.prepare('SELECT COUNT(*) as count FROM Users').get().count;
+    if (userCount === 0) {
+        const id = generateId();
+        const salt = generateSalt();
+        const hash = hashPassword('admin123', salt);
+        const stmt = db.prepare('INSERT INTO Users (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)');
+        stmt.run(id, 'Admin', 'admin@example.com', hash, salt, 'admin');
+        console.log('Default admin seeded: admin@example.com / admin123');
+    }
+}
+seedAdmin();
+
+// --- AUTH ---
+app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+    const user = db.prepare('SELECT * FROM Users WHERE email = ? AND isActive = 1').get(email);
+    
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const hash = hashPassword(password, user.salt);
+    if (hash === user.passwordHash) {
+        // Exclude sensitive data
+        const { passwordHash, salt, ...userData } = user;
+        res.json({ success: true, user: userData });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+});
+
+// --- USERS ---
+app.get('/api/users', (req, res) => {
+    const users = db.prepare('SELECT id, username, email, role, isActive, createdAt FROM Users WHERE isActive = 1').all();
+    res.json(users);
+});
+
+app.post('/api/users', (req, res) => {
+    const { username, email, password, role } = req.body;
+    
+    // Check if email exists
+    const existing = db.prepare('SELECT id FROM Users WHERE email = ?').get(email);
+    if (existing) return res.status(400).json({ error: 'Email already exists' });
+    
+    const id = generateId();
+    const salt = generateSalt();
+    const hash = hashPassword(password, salt);
+    
+    const stmt = db.prepare('INSERT INTO Users (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)');
+    stmt.run(id, username, email, hash, salt, role || 'staff');
+    
+    res.json({ success: true, id, username, email, role });
+});
+
+app.put('/api/users/:id/password', (req, res) => {
+    const { newPassword } = req.body;
+    const salt = generateSalt();
+    const hash = hashPassword(newPassword, salt);
+    
+    const stmt = db.prepare('UPDATE Users SET passwordHash = ?, salt = ? WHERE id = ?');
+    stmt.run(hash, salt, req.params.id);
+    
+    res.json({ success: true });
+});
+
+app.put('/api/users/:id/role', (req, res) => {
+    const { role } = req.body;
+    const stmt = db.prepare('UPDATE Users SET role = ? WHERE id = ?');
+    stmt.run(role, req.params.id);
+    res.json({ success: true });
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    const stmt = db.prepare('UPDATE Users SET isActive = 0 WHERE id = ?');
+    stmt.run(req.params.id);
+    res.json({ success: true });
+});
 
 // --- CUSTOMERS ---
 app.get('/api/customers', (req, res) => {
