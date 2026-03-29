@@ -148,16 +148,16 @@ const Customers = () => {
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button 
-                                            className="icon-btn" 
+                                            className="btn-icon" 
                                             onClick={(e) => { e.stopPropagation(); handleOpenModal(customer); }}
-                                            style={{ padding: '6px' }}
+                                            title="Edit"
                                         >
                                             <Edit2 size={16} />
                                         </button>
                                         <button 
-                                            className="icon-btn" 
+                                            className="btn-icon danger" 
                                             onClick={(e) => { e.stopPropagation(); handleDelete(customer.CustomerId); }}
-                                            style={{ padding: '6px', color: 'var(--color-danger)' }}
+                                            title="Delete"
                                         >
                                             <Trash2 size={16} />
                                         </button>
