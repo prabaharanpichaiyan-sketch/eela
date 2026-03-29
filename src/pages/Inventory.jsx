@@ -144,12 +144,12 @@ const Inventory = () => {
 
     const getHeaderColor = (name) => {
         const colors = [
-            { bg: '#e0f2fe', text: '#0369a1' }, // Sky
-            { bg: '#fce7f3', text: '#be185d' }, // Pink
-            { bg: '#dcfce7', text: '#15803d' }, // Emerald
-            { bg: '#fef3c7', text: '#b45309' }, // Amber
-            { bg: '#f3e8ff', text: '#7e22ce' }, // Purple
-            { bg: '#ffedd5', text: '#c2410c' }  // Orange
+            { bg: '#bae6fd', text: '#0369a1' }, // Sky
+            { bg: '#fbcfe8', text: '#be185d' }, // Pink
+            { bg: '#bbf7d0', text: '#15803d' }, // Emerald
+            { bg: '#fde68a', text: '#b45309' }, // Amber
+            { bg: '#e9d5ff', text: '#7e22ce' }, // Purple
+            { bg: '#fed7aa', text: '#c2410c' }  // Orange
         ];
         let hash = 0;
         for (let i = 0; i < name.length; i++) {
@@ -374,18 +374,13 @@ const Inventory = () => {
                             <div style={{ 
                                 display: 'flex', 
                                 justifyContent: 'space-between', 
-                                alignItems: 'flex-start',
+                                alignItems: 'center',
                                 padding: '16px 20px',
                                 background: headerColor.bg,
                                 color: headerColor.text,
                                 borderBottom: '1px solid rgba(0,0,0,0.05)'
                             }}>
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '4px' }}>{item.IngredientName}</div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, fontWeight: 500 }}>
-                                        Cost: ₹{item.CostPerUnit ? item.CostPerUnit.toFixed(3) : '0.00'} / {item.Unit}
-                                    </div>
-                                </div>
+                                <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{item.IngredientName}</div>
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     <div style={{
                                         padding: '4px 8px',
@@ -407,6 +402,10 @@ const Inventory = () => {
 
                             {/* Body: Quantity and Actions */}
                             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                                    Cost per Unit: <span style={{ color: 'var(--color-text)', fontWeight: 700 }}>₹{item.CostPerUnit ? item.CostPerUnit.toFixed(3) : '0.00'} / {item.Unit}</span>
+                                </div>
+
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-bg)', padding: '16px', borderRadius: '12px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Available</span>
