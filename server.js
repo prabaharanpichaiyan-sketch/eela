@@ -241,12 +241,13 @@ app.get('/api/inventory', async (req, res) => {
         IngredientName: i.ingredientname,
         QuantityAvailable: i.quantityavailable,
         LowStockLimit: i.lowstocklimit,
+        CostPerUnit: i.costperunit || 0,
         LastUpdated: i.lastupdated
     })));
 });
 
 app.post('/api/inventory', async (req, res) => {
-    const { IngredientName, Unit, QuantityAvailable, LowStockLimit } = req.body;
+    const { IngredientName, Unit, QuantityAvailable, LowStockLimit, CostPerUnit } = req.body;
     const id = generateId();
     
     const { error } = await supabase
@@ -257,6 +258,7 @@ app.post('/api/inventory', async (req, res) => {
             unit: Unit,
             quantityavailable: QuantityAvailable || 0,
             lowstocklimit: LowStockLimit || 0,
+            costperunit: CostPerUnit || 0,
             isactive: 1
         }]);
     
@@ -269,12 +271,13 @@ app.post('/api/inventory', async (req, res) => {
         Unit, 
         QuantityAvailable, 
         LowStockLimit, 
+        CostPerUnit: CostPerUnit || 0,
         IsActive: true 
     });
 });
 
 app.put('/api/inventory/:id', async (req, res) => {
-    const { IngredientName, Unit, LowStockLimit, IsActive } = req.body;
+    const { IngredientName, Unit, LowStockLimit, CostPerUnit, IsActive } = req.body;
     const isActiveInt = IsActive === false ? 0 : 1;
     const lastupdated = new Date().toISOString();
     
@@ -284,6 +287,7 @@ app.put('/api/inventory/:id', async (req, res) => {
             ingredientname: IngredientName,
             unit: Unit,
             lowstocklimit: LowStockLimit,
+            costperunit: CostPerUnit,
             isactive: isActiveInt,
             lastupdated
         })

@@ -12,6 +12,8 @@ const Inventory = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [showBulkAdd, setShowBulkAdd] = useState(false);
+    const [showBulkEdit, setShowBulkEdit] = useState(false);
     
     // Delete Modal State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -22,8 +24,14 @@ const Inventory = () => {
     const [errorMessage, setErrorMessage] = useState('');
     
     // Form/Action States
-    const [newItem, setNewItem] = useState({ IngredientName: '', QuantityAvailable: 0, Unit: 'g', LowStockLimit: 0, CostPerUnit: 0 });
-    const [editItem, setEditItem] = useState({ IngredientName: '', Unit: 'g', LowStockLimit: 0, CostPerUnit: 0 });
+    const [newItem, setNewItem] = useState({ 
+        IngredientName: '', QuantityAvailable: 0, Unit: 'g', LowStockLimit: 0, CostPerUnit: 0, TotalPrice: 0,
+        Packets: '', AmountPerPacket: '', PricePerPacket: '' 
+    });
+    const [editItem, setEditItem] = useState({ 
+        IngredientName: '', Unit: 'g', LowStockLimit: 0, CostPerUnit: 0, TotalPrice: 0,
+        Packets: '', AmountPerPacket: '', PricePerPacket: '' 
+    });
     const [editingId, setEditingId] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [updateAmount, setUpdateAmount] = useState('');
@@ -66,8 +74,87 @@ const Inventory = () => {
             CostPerUnit: parseFloat(newItem.CostPerUnit),
             IsActive: true
         });
-        setNewItem({ IngredientName: '', QuantityAvailable: 0, Unit: 'g', LowStockLimit: 0, CostPerUnit: 0 });
+        setNewItem({ IngredientName: '', QuantityAvailable: 0, Unit: 'g', LowStockLimit: 0, CostPerUnit: 0, TotalPrice: 0 });
         setShowAddModal(false);
+    };
+
+    const handleNewItemChange = (field, value) => {
+        const updatedItem = { ...newItem, [field]: value };
+        
+        if (field === 'QuantityAvailable' || field === 'CostPerUnit') {
+            const qty = parseFloat(field === 'QuantityAvailable' ? value : newItem.QuantityAvailable) || 0;
+            const cpu = parseFloat(field === 'CostPerUnit' ? value : newItem.CostPerUnit) || 0;
+            updatedItem.TotalPrice = (qty * cpu).toFixed(2);
+        } else if (field === 'TotalPrice') {
+            const total = parseFloat(value) || 0;
+            const qty = parseFloat(newItem.QuantityAvailable) || 0;
+            if (qty > 0) {
+                updatedItem.CostPerUnit = (total / qty).toFixed(3);
+            }
+        }
+        setNewItem(updatedItem);
+    };
+
+    const handleBulkNewChange = (field, value) => {
+        const updatedItem = { ...newItem, [field]: value };
+        const packets = parseFloat(field === 'Packets' ? value : newItem.Packets) || 0;
+        const amount = parseFloat(field === 'AmountPerPacket' ? value : newItem.AmountPerPacket) || 0;
+        const price = parseFloat(field === 'PricePerPacket' ? value : newItem.PricePerPacket) || 0;
+
+        if (packets > 0) {
+            if (amount > 0) {
+                updatedItem.QuantityAvailable = (packets * amount);
+            }
+            if (price > 0) {
+                updatedItem.TotalPrice = (packets * price).toFixed(2);
+            }
+            if (amount > 0 && price > 0) {
+                updatedItem.CostPerUnit = (price / amount).toFixed(3);
+            }
+        }
+        setNewItem(updatedItem);
+    };
+
+    const handleBulkEditChange = (field, value) => {
+        const updatedItem = { ...editItem, [field]: value };
+        const packets = parseFloat(field === 'Packets' ? value : editItem.Packets) || 0;
+        const amount = parseFloat(field === 'AmountPerPacket' ? value : editItem.AmountPerPacket) || 0;
+        const price = parseFloat(field === 'PricePerPacket' ? value : editItem.PricePerPacket) || 0;
+
+        if (packets > 0) {
+            if (amount > 0) {
+                // In edit mode, we don't usually change QuantityAvailable directly via form, 
+                // but for new entries or if the user wants to recalibrate cost based on a fresh purchase:
+                // We'll let them calculate CostPerUnit and TotalPrice.
+                updatedItem.TotalPrice = (packets * price).toFixed(2);
+                updatedItem.CostPerUnit = (price / amount).toFixed(3);
+            }
+        }
+        setEditItem(updatedItem);
+    };
+
+    const handleEditItemChange = (field, value) => {
+        const updatedItem = { ...editItem, [field]: value };
+        
+        // Use the ingredient's current quantity for calculation in edit mode
+        // Note: editing only allows changing name, unit, limit, and cost, not the available quantity directly here
+        // However, we still want to show the total value of existing stock or calculate cost based on total update.
+        // Actually, the edit modal in this app (based on line 91) doesn't have QuantityAvailable input.
+        // So TotalPrice in Edit Modal should be: QuantityAvailable (from item) * CostPerUnit
+        
+        const item = inventory.find(i => i.InventoryId === editingId);
+        const qty = item?.QuantityAvailable || 0;
+
+        if (field === 'CostPerUnit') {
+            const cpu = parseFloat(value) || 0;
+            updatedItem.TotalPrice = (qty * cpu).toFixed(2);
+        } else if (field === 'TotalPrice') {
+            const total = parseFloat(value) || 0;
+            if (qty > 0) {
+                updatedItem.CostPerUnit = (total / qty).toFixed(3);
+            }
+        }
+        setEditItem(updatedItem);
     };
 
     const openUpdateModal = (item) => {
@@ -93,7 +180,8 @@ const Inventory = () => {
             IngredientName: item.IngredientName,
             Unit: item.Unit,
             LowStockLimit: item.LowStockLimit,
-            CostPerUnit: item.CostPerUnit
+            CostPerUnit: item.CostPerUnit,
+            TotalPrice: (item.QuantityAvailable * item.CostPerUnit).toFixed(2)
         });
         setEditingId(item.InventoryId);
         setShowEditModal(true);
@@ -186,7 +274,7 @@ const Inventory = () => {
             {/* Add Item Modal */}
             <Modal 
                 isOpen={showAddModal} 
-                onClose={() => setShowAddModal(false)} 
+                onClose={() => { setShowAddModal(false); setShowBulkAdd(false); }} 
                 title="Add New Ingredient"
                 closeOnOverlayClick={false}
             >
@@ -198,7 +286,7 @@ const Inventory = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div className="form-group">
                             <label>Quantity</label>
-                            <input type="number" min="0" required value={newItem.QuantityAvailable} onChange={e => setNewItem({ ...newItem, QuantityAvailable: e.target.value })} />
+                            <input type="number" min="0" required value={newItem.QuantityAvailable} onChange={e => handleNewItemChange('QuantityAvailable', e.target.value)} />
                         </div>
                         <div className="form-group">
                             <SearchableSelect
@@ -217,13 +305,49 @@ const Inventory = () => {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div className="form-group">
-                            <label>Min Stock Alert</label>
-                            <input type="number" min="0" required value={newItem.LowStockLimit} onChange={e => setNewItem({ ...newItem, LowStockLimit: e.target.value })} />
+                            <label>Cost Per Unit (₹)</label>
+                            <input type="number" step="0.001" min="0" required value={newItem.CostPerUnit} onChange={e => handleNewItemChange('CostPerUnit', e.target.value)} />
                         </div>
                         <div className="form-group">
-                            <label>Cost Per Unit (₹)</label>
-                            <input type="number" step="0.001" min="0" required value={newItem.CostPerUnit} onChange={e => setNewItem({ ...newItem, CostPerUnit: e.target.value })} />
+                            <label>Total Price (₹)</label>
+                            <input type="number" step="0.01" min="0" required value={newItem.TotalPrice} onChange={e => handleNewItemChange('TotalPrice', e.target.value)} />
                         </div>
+                    </div>
+
+                    {/* Bulk Entry Helper */}
+                    <div style={{ marginBottom: '20px', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '16px', background: '#f8fafc' }}>
+                        <div 
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showBulkAdd ? '16px' : 0 }}
+                            onClick={() => setShowBulkAdd(!showBulkAdd)}
+                        >
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#475569' }}>Bulk/Packet Entry Helper</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 700 }}>{showBulkAdd ? 'HIDE' : 'SHOW'}</span>
+                        </div>
+                        
+                        {showBulkAdd && (
+                            <div className="animate-fade-in">
+                                <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px' }}>Enter packet details to calculate totals automatically.</p>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>No. of Packets</label>
+                                        <input type="number" placeholder="e.g. 6" value={newItem.Packets} onChange={e => handleBulkNewChange('Packets', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>Amt per Packet ({newItem.Unit})</label>
+                                        <input type="number" placeholder="e.g. 500" value={newItem.AmountPerPacket} onChange={e => handleBulkNewChange('AmountPerPacket', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>Price per Packet (₹)</label>
+                                        <input type="number" placeholder="e.g. 50" value={newItem.PricePerPacket} onChange={e => handleBulkNewChange('PricePerPacket', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Min Stock Alert</label>
+                        <input type="number" min="0" required value={newItem.LowStockLimit} onChange={e => setNewItem({ ...newItem, LowStockLimit: e.target.value })} />
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
                         <button type="button" className="secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
@@ -235,7 +359,7 @@ const Inventory = () => {
             {/* Edit Ingredient Modal */}
             <Modal 
                 isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)} 
+                onClose={() => { setShowEditModal(false); setShowBulkEdit(false); }} 
                 title="Edit Ingredient"
             >
                 <form id="edit-form" onSubmit={handleEditSubmit}>
@@ -263,9 +387,46 @@ const Inventory = () => {
                             <input type="number" min="0" required value={editItem.LowStockLimit} onChange={e => setEditItem({ ...editItem, LowStockLimit: e.target.value })} />
                         </div>
                     </div>
-                    <div className="form-group">
-                        <label>Cost Per Unit (₹)</label>
-                        <input type="number" step="0.001" min="0" required value={editItem.CostPerUnit} onChange={e => setEditItem({ ...editItem, CostPerUnit: e.target.value })} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="form-group">
+                            <label>Cost Per Unit (₹)</label>
+                            <input type="number" step="0.001" min="0" required value={editItem.CostPerUnit} onChange={e => handleEditItemChange('CostPerUnit', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Total Price (₹)</label>
+                            <input type="number" step="0.01" min="0" required value={editItem.TotalPrice} onChange={e => handleEditItemChange('TotalPrice', e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Bulk Entry Helper (Edit) */}
+                    <div style={{ marginBottom: '20px', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '16px', background: '#f8fafc' }}>
+                        <div 
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showBulkEdit ? '16px' : 0 }}
+                            onClick={() => setShowBulkEdit(!showBulkEdit)}
+                        >
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#475569' }}>Recalculate using Bulk/Packets</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 700 }}>{showBulkEdit ? 'HIDE' : 'SHOW'}</span>
+                        </div>
+                        
+                        {showBulkEdit && (
+                            <div className="animate-fade-in">
+                                <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px' }}>Enter packet details to recalculate unit cost.</p>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>No. of Packets</label>
+                                        <input type="number" placeholder="e.g. 6" value={editItem.Packets} onChange={e => handleBulkEditChange('Packets', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>Amt per Packet ({editItem.Unit})</label>
+                                        <input type="number" placeholder="e.g. 500" value={editItem.AmountPerPacket} onChange={e => handleBulkEditChange('AmountPerPacket', e.target.value)} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: '0.75rem' }}>Price per Packet (₹)</label>
+                                        <input type="number" placeholder="e.g. 50" value={editItem.PricePerPacket} onChange={e => handleBulkEditChange('PricePerPacket', e.target.value)} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
                         <button type="button" className="secondary" onClick={() => setShowEditModal(false)}>Cancel</button>

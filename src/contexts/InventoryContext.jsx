@@ -47,7 +47,7 @@ export const InventoryProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
-            setInventory(prev => prev.map(i => i.id === id ? { ...i, ...updatedData } : i));
+            setInventory(prev => prev.map(i => (i.InventoryId === id || i.id === id) ? { ...i, ...updatedData } : i));
         } catch (error) {
             console.error("Error updating ingredient:", error);
             throw error;
