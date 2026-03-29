@@ -286,6 +286,38 @@ const Inventory = () => {
                     </>
                 }
             >
+                {/* Dynamic Cost Calculator */}
+                {(() => {
+                    if (!selectedItem || !updateAmount || isNaN(updateAmount)) return null;
+                    const val = parseFloat(updateAmount);
+                    const cost = selectedItem.CostPerUnit || 0;
+                    let expense = 0;
+                    
+                    if (updateType === 'add') expense = val * cost;
+                    if (updateType === 'set' && val > selectedItem.QuantityAvailable) {
+                        expense = (val - selectedItem.QuantityAvailable) * cost;
+                    }
+
+                    if (expense > 0) {
+                        return (
+                            <div style={{ 
+                                marginBottom: '16px', 
+                                padding: '16px', 
+                                backgroundColor: '#fef2f2', 
+                                border: '1px solid #fca5a5', 
+                                borderRadius: '12px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <span style={{ color: '#991b1b', fontSize: '0.95rem', fontWeight: 600 }}>Total Spent on Restock:</span>
+                                <span style={{ color: '#dc2626', fontSize: '1.2rem', fontWeight: 800 }}>₹{expense.toFixed(2)}</span>
+                            </div>
+                        );
+                    }
+                    return null;
+                })()}
+
                 <div className="form-group">
                      <label>Current Stock: {selectedItem?.QuantityAvailable} {selectedItem?.Unit}</label>
                 </div>
