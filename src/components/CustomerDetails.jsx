@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useOrders } from '../contexts/OrdersContext';
 import Modal from './Modal';
-import { User, Phone, Mail, MapPin, FileText, Clock, CheckCircle, AlertOctagon, Calendar, ArrowRight } from 'lucide-react';
+import { User, Phone, Mail, MapPin, FileText, Clock, CheckCircle, AlertOctagon, Calendar, ArrowRight, Edit2 } from 'lucide-react';
 
 const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
     const { orders } = useOrders();
@@ -198,9 +198,6 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
             )}
         </div>
     );
-
-    // Import Edit2 here if not passed or ensure it's available
-    const { Edit2 } = require('lucide-react'); 
 
     return (
         <Modal
