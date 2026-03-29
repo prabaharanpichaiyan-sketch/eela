@@ -36,9 +36,15 @@ const hashPassword = (password, salt) => {
 };
 const generateSalt = () => crypto.randomBytes(16).toString('hex');
 
+// --- HEALTH CHECK / PING ---
+app.get('/api/ping', (req, res) => {
+    res.json({ success: true, message: 'Serverless API is running!', timestamp: new Date().toISOString() });
+});
+
 // --- AUTH ---
-app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
+app.post('/api/auth/login', async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
     const { data: user, error } = await supabase
         .from('users')
         .select('*')
@@ -50,15 +56,19 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const hash = hashPassword(password, user.salt);
-    if (hash === user.passwordhash) {
-        // Exclude sensitive data
-        const { passwordhash, salt, ...userData } = user;
-        res.json({ success: true, user: userData });
-    } else {
-        res.status(401).json({ error: 'Invalid credentials' });
+        const hash = hashPassword(password, user.salt);
+        if (hash === user.passwordhash) {
+            // Exclude sensitive data
+            const { passwordhash, salt, ...userData } = user;
+            res.json({ success: true, user: userData });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    } catch (err) {
+        next(err);
     }
 });
+
 
 // --- USERS ---
 app.get('/api/users', async (req, res) => {
@@ -524,6 +534,16 @@ app.delete('/api/clear-all', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// Error handling middleware to prevent 502 Gateway crashes
+app.use((err, req, res, next) => {
+    console.error("Unhandled API Error:", err);
+    res.status(500).json({ 
+        error: 'Internal Server Error', 
+        message: err.message,
+        stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined 
+    });
 });
 
 const PORT = process.env.PORT || 3000;
