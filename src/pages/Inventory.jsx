@@ -346,7 +346,7 @@ const Inventory = () => {
                 </div>
             </div>
 
-            <div className="inventory-list">
+            <div className="inventory-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {filteredInventory.map(item => {
                     const isLowStock = item.QuantityAvailable <= item.LowStockLimit;
                     return (

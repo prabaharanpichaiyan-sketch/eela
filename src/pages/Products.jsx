@@ -321,7 +321,7 @@ const Products = () => {
                 </form>
             </Modal>
 
-            <div className="product-list">
+            <div className="product-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {filteredProducts.map(product => {
                     const estimatedCost = calculateEstimatedCost(product.ingredients);
                     const margin = product.SellingPrice - estimatedCost;
