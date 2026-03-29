@@ -36,11 +36,13 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
         }
     };
 
+    const totalRevenue = totalSpent - totalPending;
+
     const renderProfileTab = () => (
-        <div style={{ padding: '16px' }}>
+        <div>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
-                    <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>Contact Information</h3>
+                    <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--color-primary)' }}>Contact Information</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <User size={20} color="#6b7280" />
@@ -74,24 +76,28 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                    <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'var(--color-primary)' }}>Summary</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <div className="card" style={{ padding: '16px', background: '#f8fafc', border: 'none' }}>
-                            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px' }}>Total Orders</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>{totalOrders}</div>
+                    <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1.1rem', color: 'var(--color-primary)' }}>Summary</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="card" style={{ padding: '12px', background: '#f8fafc', border: 'none' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '4px' }}>Total Orders</div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#0f172a' }}>{totalOrders}</div>
                         </div>
-                        <div className="card" style={{ padding: '16px', background: '#f8fafc', border: 'none' }}>
-                            <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px' }}>Total Spent</div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>₹{totalSpent.toFixed(0)}</div>
+                        <div className="card" style={{ padding: '12px', background: '#f8fafc', border: 'none' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '4px' }}>Total Spent</div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#0f172a' }}>₹{totalSpent.toFixed(0)}</div>
                         </div>
-                        <div className="card" style={{ padding: '16px', background: '#fef2f2', border: '1px solid #fca5a5', gridColumn: '1 / -1' }}>
-                            <div style={{ fontSize: '0.85rem', color: '#b91c1c', marginBottom: '8px' }}>Pending Balance</div>
-                            <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#dc2626' }}>₹{totalPending.toFixed(2)}</div>
+                        <div className="card" style={{ padding: '12px', background: '#f0fdfa', border: 'none' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#0d9488', marginBottom: '4px' }}>Total Revenue</div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#0f766e' }}>₹{totalRevenue.toFixed(0)}</div>
+                        </div>
+                        <div className="card" style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fca5a5' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#b91c1c', marginBottom: '4px' }}>Pending Balance</div>
+                            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#dc2626' }}>₹{totalPending.toFixed(0)}</div>
                         </div>
                     </div>
 
                     {customer.Notes && (
-                        <div style={{ marginTop: '24px' }}>
+                        <div style={{ marginTop: '16px' }}>
                             <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: '#6b7280' }}>Notes</h4>
                             <div style={{ background: '#fffbeb', padding: '12px', borderRadius: '8px', fontSize: '0.9rem', color: '#92400e' }}>
                                 {customer.Notes}
@@ -101,7 +107,7 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
                 </div>
             </div>
             
-            <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
                 <button className="primary" onClick={() => onEdit(customer)}>
                     <Edit2 size={16} style={{ marginRight: '8px' }} /> Edit Profile
                 </button>
@@ -257,7 +263,7 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
                 </div>
             </div>
 
-            <div style={{ minHeight: '300px' }}>
+            <div style={{ minHeight: 'auto', paddingBottom: '8px' }}>
                 {activeTab === 'profile' && renderProfileTab()}
                 {activeTab === 'orders' && renderOrdersTab()}
                 {activeTab === 'pending' && renderPendingTab()}
