@@ -12,6 +12,10 @@ const Customers = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
 
+    // Delete Modal State
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [customerToDelete, setCustomerToDelete] = useState(null);
+
     // Detail View State
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -67,9 +71,16 @@ const Customers = () => {
         setIsModalOpen(false);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this customer?')) {
-            deleteCustomer(id);
+    const confirmDelete = (customer) => {
+        setCustomerToDelete(customer);
+        setShowDeleteModal(true);
+    };
+
+    const handleDelete = () => {
+        if (customerToDelete) {
+            deleteCustomer(customerToDelete.CustomerId);
+            setShowDeleteModal(false);
+            setCustomerToDelete(null);
         }
     };
 
@@ -156,7 +167,7 @@ const Customers = () => {
                                         </button>
                                         <button 
                                             className="btn-icon danger" 
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(customer.CustomerId); }}
+                                            onClick={(e) => { e.stopPropagation(); confirmDelete(customer); }}
                                             title="Delete"
                                         >
                                             <Trash2 size={16} />
@@ -276,6 +287,25 @@ const Customers = () => {
                             style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db', fontFamily: 'inherit' }}
                         />
                     </div>
+                </div>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                title="Confirm Delete"
+                footer={
+                    <>
+                        <button className="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                        <button className="primary danger" onClick={handleDelete}>Delete</button>
+                    </>
+                }
+            >
+                <div>
+                    Are you sure you want to delete <strong>{customerToDelete?.CustomerName}</strong>?
+                    <br/><br/>
+                    <span className="text-muted" style={{ fontSize: '0.9rem' }}>This action cannot be undone.</span>
                 </div>
             </Modal>
 
