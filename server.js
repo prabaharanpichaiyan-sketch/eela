@@ -11,10 +11,14 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("WARNING: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.");
+}
+
+const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseServiceKey || 'placeholder');
 
 // Generic helper to generate a random ID matching Firebase length (20 chars)
 const generateId = () => {
@@ -523,9 +527,9 @@ app.delete('/api/clear-all', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-if (process.env.NODE_ENV !== 'production' || !process.env.NETLIFY) {
+if (process.argv[1] && process.argv[1].endsWith('server.js')) {
     app.listen(PORT, () => {
-        console.log(`API server running on port ${PORT}`);
+        console.log(`API server running on port ${PORT} (Local Mode)`);
     });
 }
 
