@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CustomersContext = createContext();
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 export const useCustomers = () => useContext(CustomersContext);
 

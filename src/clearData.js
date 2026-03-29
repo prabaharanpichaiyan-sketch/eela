@@ -3,7 +3,7 @@
 async function clearAllData() {
     try {
         console.log('Starting to clear all data via local API...');
-        const res = await fetch('http://localhost:3000/api/clear-all', { method: 'DELETE' });
+        const res = await fetch('/api/clear-all', { method: 'DELETE' });
         if (res.ok) {
             console.log('✅ All data cleared successfully!');
         } else {

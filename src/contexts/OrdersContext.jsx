@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useInventory } from './InventoryContext';
 
 const OrdersContext = createContext();
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 export const useOrders = () => useContext(OrdersContext);
 
