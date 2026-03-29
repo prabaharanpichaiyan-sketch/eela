@@ -1,23 +1,16 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 const LogoSVG = () => (
     <img src="/eela-logo.jpeg" alt="Eela Logo" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} />
 );
 
 const Invoice = ({ order, formatCurrency = (val) => `₹${val.toFixed(2)}` }) => {
+    const invoiceRef = useRef(null);
     if (!order) return null;
 
     // Use actual order data if available or fallback
     const invoiceNo = String(order.BillId).padStart(6, '0');
     
-    let badgeColor = '#1f2937'; // Dark default (e.g., Pending)
-    let badgeText = order.PaymentStatus || 'Pending';
-    if (order.PaymentStatus === 'Paid') {
-        badgeColor = '#10B981'; // Green for paid
-    } else if (order.PaymentStatus === 'Unpaid') {
-        badgeColor = '#1f2937'; // Or red
-    }
-
     const dueDateStr = new Date(order.BillDate).toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric'
     });
@@ -26,8 +19,39 @@ const Invoice = ({ order, formatCurrency = (val) => `₹${val.toFixed(2)}` }) =>
     const tax = 0; // The existing CreateOrderModal doesn't calculate tax
     const totalDue = subtotal + tax;
 
+    const handleDownloadPDF = () => {
+        const content = invoiceRef.current;
+        if (!content) return;
+
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Invoice #${invoiceNo}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Inter', sans-serif; background: #f5f5f5; }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .no-print { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body>${content.innerHTML}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 600);
+    };
+
     return (
-        <div style={{
+        <div ref={invoiceRef} style={{
             fontFamily: "'Inter', sans-serif",
             backgroundColor: '#f5f5f5',
             color: '#1f2937',
@@ -47,22 +71,12 @@ const Invoice = ({ order, formatCurrency = (val) => `₹${val.toFixed(2)}` }) =>
                         <h1 style={{ fontSize: '3rem', margin: '0 0 8px 0', fontWeight: '400', letterSpacing: '-0.03em' }}>Invoice</h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem', color: '#6b7280' }}>
                             <span>NO. #{invoiceNo}</span>
-                            <span style={{
-                                backgroundColor: badgeColor,
-                                color: 'white',
-                                padding: '4px 12px',
-                                borderRadius: '16px',
-                                fontSize: '0.8rem',
-                                fontWeight: '500'
-                            }}>
-                                {badgeText}
-                            </span>
                         </div>
                     </div>
                 </div>
 
                 <div style={{ textAlign: 'right', color: '#4b5563', fontSize: '1rem' }}>
-                    <div style={{ marginBottom: '4px' }}>Due Date</div>
+                    <div style={{ marginBottom: '4px' }}>Date</div>
                     <div style={{ color: '#1f2937' }}>{dueDateStr}</div>
                 </div>
             </div>
@@ -129,40 +143,28 @@ const Invoice = ({ order, formatCurrency = (val) => `₹${val.toFixed(2)}` }) =>
                     )}
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: tax > 0 ? 0 : '32px' }}>
-                        <button style={{
-                            backgroundColor: '#263238', // Dark slate color from image
-                            color: 'white',
-                            border: 'none',
-                            padding: '16px',
-                            fontWeight: '500',
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            width: '100%',
-                            transition: 'opacity 0.2s',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}
-                        onMouseOver={(e) => e.target.style.opacity = 0.9}
-                        onMouseOut={(e) => e.target.style.opacity = 1}
+                        <button
+                            onClick={handleDownloadPDF}
+                            style={{
+                                backgroundColor: '#263238',
+                                color: 'white',
+                                border: 'none',
+                                padding: '16px',
+                                fontWeight: '500',
+                                fontSize: '1rem',
+                                cursor: 'pointer',
+                                width: '100%',
+                                transition: 'opacity 0.2s',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.opacity = 0.85}
+                            onMouseOut={(e) => e.currentTarget.style.opacity = 1}
+                            className="no-print"
                         >
-                            Download PDF
-                        </button>
-                        <button style={{
-                            backgroundColor: 'transparent',
-                            color: '#1f2937',
-                            border: '1px solid #d1d5db',
-                            padding: '16px',
-                            fontWeight: '500',
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            width: '100%',
-                            transition: 'background-color 0.2s',
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = 'rgba(0,0,0,0.02)'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                        >
-                            Send Invoice
+                            ⬇ Download PDF
                         </button>
                     </div>
                 </div>

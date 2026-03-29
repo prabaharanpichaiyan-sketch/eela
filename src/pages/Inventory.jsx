@@ -146,7 +146,7 @@ const Inventory = () => {
         <div className="animate-fade-in">
             <header className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Stock</h1>
-                <button className="primary" style={{ width: 'auto' }} onClick={() => setShowAddModal(true)}>
+                <button className="primary" onClick={() => setShowAddModal(true)}>
                     <Plus size={20} /> Add Item
                 </button>
             </header>
@@ -158,7 +158,7 @@ const Inventory = () => {
                 title="Notice"
                 zIndex={2000}
                 footer={
-                    <button className="primary" style={{ width: 'auto' }} onClick={() => setShowErrorModal(false)}>OK</button>
+                    <button className="primary" onClick={() => setShowErrorModal(false)}>OK</button>
                 }
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -182,7 +182,7 @@ const Inventory = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div className="form-group">
                             <label>Quantity</label>
-                            <input type="number" required value={newItem.QuantityAvailable} onChange={e => setNewItem({ ...newItem, QuantityAvailable: e.target.value })} />
+                            <input type="number" min="0" required value={newItem.QuantityAvailable} onChange={e => setNewItem({ ...newItem, QuantityAvailable: e.target.value })} />
                         </div>
                         <div className="form-group">
                             <SearchableSelect
@@ -202,16 +202,16 @@ const Inventory = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div className="form-group">
                             <label>Min Stock Alert</label>
-                            <input type="number" required value={newItem.LowStockLimit} onChange={e => setNewItem({ ...newItem, LowStockLimit: e.target.value })} />
+                            <input type="number" min="0" required value={newItem.LowStockLimit} onChange={e => setNewItem({ ...newItem, LowStockLimit: e.target.value })} />
                         </div>
                         <div className="form-group">
                             <label>Cost Per Unit (₹)</label>
-                            <input type="number" step="0.001" required value={newItem.CostPerUnit} onChange={e => setNewItem({ ...newItem, CostPerUnit: e.target.value })} />
+                            <input type="number" step="0.001" min="0" required value={newItem.CostPerUnit} onChange={e => setNewItem({ ...newItem, CostPerUnit: e.target.value })} />
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
                         <button type="button" className="secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                        <button type="submit" className="primary" style={{ width: 'auto' }}>Save Item</button>
+                        <button type="submit" className="primary">Save Item</button>
                     </div>
                 </form>
             </Modal>
@@ -244,16 +244,16 @@ const Inventory = () => {
                         </div>
                         <div className="form-group">
                             <label>Min Stock Alert</label>
-                            <input type="number" required value={editItem.LowStockLimit} onChange={e => setEditItem({ ...editItem, LowStockLimit: e.target.value })} />
+                            <input type="number" min="0" required value={editItem.LowStockLimit} onChange={e => setEditItem({ ...editItem, LowStockLimit: e.target.value })} />
                         </div>
                     </div>
                     <div className="form-group">
                         <label>Cost Per Unit (₹)</label>
-                        <input type="number" step="0.001" required value={editItem.CostPerUnit} onChange={e => setEditItem({ ...editItem, CostPerUnit: e.target.value })} />
+                        <input type="number" step="0.001" min="0" required value={editItem.CostPerUnit} onChange={e => setEditItem({ ...editItem, CostPerUnit: e.target.value })} />
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
                         <button type="button" className="secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
-                        <button type="submit" className="primary" style={{ width: 'auto' }}>Save Changes</button>
+                        <button type="submit" className="primary">Save Changes</button>
                     </div>
                 </form>
             </Modal>
@@ -266,7 +266,7 @@ const Inventory = () => {
                 footer={
                     <>
                         <button className="secondary" onClick={() => setShowUpdateModal(false)}>Cancel</button>
-                        <button className="primary" style={{ width: 'auto' }} onClick={handleUpdateStock}>Update</button>
+                        <button className="primary" onClick={handleUpdateStock}>Update</button>
                     </>
                 }
             >
@@ -303,6 +303,7 @@ const Inventory = () => {
                     <label>{updateType === 'set' ? 'New Total Quantity' : 'Quantity to ' + (updateType === 'add' ? 'Add' : 'Remove')}</label>
                     <input 
                         type="number" 
+                        min="0"
                         autoFocus
                         value={updateAmount} 
                         onChange={e => setUpdateAmount(e.target.value)}
@@ -320,7 +321,7 @@ const Inventory = () => {
                 footer={
                     <>
                         <button className="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                        <button className="primary" style={{ backgroundColor: 'var(--color-danger)', width: 'auto' }} onClick={handleDelete}>Delete</button>
+                        <button className="danger" onClick={handleDelete}>Delete</button>
                     </>
                 }
             >
@@ -374,22 +375,8 @@ const Inventory = () => {
                                         {isLowStock ? <AlertTriangle size={12} /> : <CheckCircle size={12} />}
                                         {isLowStock ? 'LOW STOCK' : 'IN STOCK'}
                                     </div>
-                                    <button 
-                                        className="secondary" 
-                                        title="Edit Ingredient"
-                                        style={{ padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
-                                        onClick={() => openEditModal(item)}
-                                    >
-                                        <Edit2 size={16} style={{ color: 'var(--color-primary)' }} />
-                                    </button>
-                                    <button 
-                                        className="secondary" 
-                                        title="Delete Ingredient"
-                                        style={{ padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
-                                        onClick={() => confirmDelete(item)}
-                                    >
-                                        <Trash2 size={16} style={{ color: 'var(--color-danger)' }} />
-                                    </button>
+                                    <button className="btn-icon" title="Edit Ingredient" onClick={() => openEditModal(item)}><Edit2 size={16} /></button>
+                                    <button className="btn-icon danger" title="Delete Ingredient" onClick={() => confirmDelete(item)}><Trash2 size={16} /></button>
                                 </div>
                             </div>
 

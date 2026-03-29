@@ -5,14 +5,14 @@ import SearchableSelect from '../components/SearchableSelect';
 import Modal from '../components/Modal';
 import DateRangePicker from '../components/DateRangePicker';
 import Invoice from '../components/Invoice';
-import { Calendar, Download, MoreHorizontal, Plus, Filter, LayoutGrid, RotateCcw, Search, ChevronDown, CheckSquare, Square, Receipt, Trash2, Printer } from 'lucide-react';
+import { Calendar, Download, MoreHorizontal, Plus, Filter, LayoutGrid, RotateCcw, Search, ChevronDown, CheckSquare, Square, Receipt, Trash2, Printer, ShoppingCart, Package, Wallet } from 'lucide-react';
 
-const Orders = () => {
+const Orders = ({ setActiveTab }) => {
     const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder } = useOrders();
     const [selectedTab, setSelectedTab] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrders, setSelectedOrders] = useState([]);
-    const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
+    // Modal state removed - now uses full page
     
     // Delete Modal State
     const [orderToDelete, setOrderToDelete] = useState(null);
@@ -225,9 +225,12 @@ const Orders = () => {
     };
 
     // Stats
-    const totalOrders = orders.length; // Should this be total in DB or total filtered? Usually "Stats" are global, but maybe context specific. Let's keep global for now as per current code.
+    const totalOrders = orders.length;
     const totalItems = orders.reduce((acc, order) => acc + order.items.reduce((s, i) => s + i.Quantity, 0), 0);
     const fulfilled = orders.filter(o => o.OrderStatus === 'Delivered').length;
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.TotalAmount || 0), 0);
+    const totalCollected = orders.reduce((sum, o) => sum + (o.PaidAmount || 0), 0);
+    const collectedPct = totalRevenue > 0 ? Math.round((totalCollected / totalRevenue) * 100) : 0;
 
     return (
         <div className="animate-fade-in">
@@ -266,24 +269,57 @@ const Orders = () => {
                     <button className="secondary" style={{ background: 'white' }} onClick={handleExport}>
                         <Download size={18} style={{ marginRight: '8px' }} /> Export
                     </button>
-                    <button className="primary" style={{ width: 'auto' }} onClick={() => setIsCreateOrderModalOpen(true)}>
+                    <button className="primary" onClick={() => setActiveTab('create-order')}>
                         <Plus size={18} style={{ marginRight: '8px' }} /> Create order
                     </button>
                 </div>
             </header>
 
-            {/* Stats Cards ... (Keep existing) */}
+            {/* Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                {[
-                    { label: 'Total Orders', value: totalOrders },
-                    { label: 'Ordered items over time', value: totalItems },
-                    { label: 'Fulfilled orders over time', value: fulfilled }
-                ].map((stat, idx) => (
-                    <div key={idx} className="card" style={{ padding: '20px', marginBottom: 0 }}>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '8px' }}>{stat.label}</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{stat.value}</div>
+
+                {/* Total Orders */}
+                <div className="card" style={{ padding: '20px 24px', marginBottom: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 500 }}>Total Orders</span>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ShoppingCart size={28} color="#3b82f6" />
+                        </div>
                     </div>
-                ))}
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1, marginBottom: '8px', color: '#1e293b' }}>{totalOrders}</div>
+                    <div style={{ fontSize: '0.9rem', color: '#1e293b' }}>All time orders</div>
+                </div>
+
+                {/* Ordered Items */}
+                <div className="card" style={{ padding: '20px 24px', marginBottom: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 500 }}>Ordered Items</span>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Package size={28} color="#16a34a" />
+                        </div>
+                    </div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1, marginBottom: '8px', color: '#1e293b' }}>{totalItems}</div>
+                    <div style={{ fontSize: '0.9rem', color: '#1e293b' }}>Total units sold</div>
+                </div>
+
+                {/* Payments Collected */}
+                <div className="card" style={{ padding: '20px 24px', marginBottom: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 500 }}>Payments Collected</span>
+                        <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Wallet size={28} color="#16a34a" />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1, color: '#16a34a' }}>₹{totalCollected.toFixed(0)}</span>
+                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e293b' }}>of ₹{totalRevenue.toFixed(0)}</span>
+                    </div>
+                    <div style={{ background: '#f3f4f6', borderRadius: '999px', height: '5px', overflow: 'hidden', marginBottom: '6px' }}>
+                        <div style={{ width: `${collectedPct}%`, background: collectedPct === 100 ? '#16a34a' : '#f59e0b', height: '100%', borderRadius: '999px', transition: 'width 0.4s ease' }} />
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: '#1e293b' }}>{collectedPct}% collected</div>
+                </div>
+
             </div>
 
 
@@ -383,26 +419,17 @@ const Orders = () => {
                                     <td style={{ padding: '16px', textAlign: 'right', color: 'var(--color-text-muted)' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                             <button 
-                                                onClick={() => openInvoiceModal(order)}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
-                                                className="icon-btn"
-                                                title="View Invoice"
+                                                className="btn-icon" onClick={() => openInvoiceModal(order)} title="View Invoice"
                                             >
                                                 <Printer size={20} />
                                             </button>
                                             <button 
-                                                onClick={() => openStatusModal(order)}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
-                                                className="icon-btn"
-                                                title="Update Status"
+                                                className="btn-icon" onClick={() => openStatusModal(order)} title="Update Status"
                                             >
                                                 <MoreHorizontal size={20} />
                                             </button>
                                             <button 
-                                                onClick={() => handleDeleteOrder(order)}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: '4px', color: '#ef4444' }}
-                                                className="icon-btn"
-                                                title="Delete Order"
+                                                className="btn-icon danger" onClick={() => handleDeleteOrder(order)} title="Delete Order"
                                             >
                                                 <Trash2 size={20} />
                                             </button>
@@ -418,11 +445,7 @@ const Orders = () => {
                 )}
             </div>
 
-            {/* Create Order Modal */}
-            <CreateOrderModal 
-                isOpen={isCreateOrderModalOpen} 
-                onClose={() => setIsCreateOrderModalOpen(false)} 
-            />
+            {/* Create Order is now a full page - no modal here */}
 
             {/* Filter Modal */}
             {isFilterModalOpen && (

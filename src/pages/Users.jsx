@@ -118,7 +118,7 @@ const Users = () => {
                     </h1>
                     <p className="text-muted" style={{ margin: '4px 0 0 0', fontSize: '0.9rem' }}>Manage roles, passwords, and access.</p>
                 </div>
-                <button className="primary" onClick={() => setShowAddModal(true)} style={{ width: 'auto' }}>
+                <button className="primary" onClick={() => setShowAddModal(true)}>
                     <Plus size={20} /> Add User
                 </button>
             </header>
@@ -192,7 +192,7 @@ const Users = () => {
                                         style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-primary)', outline: 'none', flex: 1, maxWidth: '250px' }}
                                         autoFocus
                                     />
-                                    <button className="primary" style={{ width: 'auto', padding: '8px 16px' }} title="Save Password" onClick={() => handlePasswordChange(user.id)}>
+                                    <button className="primary" style={{ padding: '8px 16px' }} title="Save Password" onClick={() => handlePasswordChange(user.id)}>
                                         <Check size={18} /> Save
                                     </button>
                                     <button className="secondary" style={{ padding: '8px 12px' }} title="Cancel" onClick={() => { setEditingPasswordId(null); setNewPassword(''); }}>
@@ -265,7 +265,7 @@ const Users = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '24px' }}>
                         <button type="button" className="secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                        <button type="submit" className="primary" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}><Save size={18} /> Create User</button>
+                        <button type="submit" className="primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Save size={18} /> Create User</button>
                     </div>
                 </form>
             </Modal>

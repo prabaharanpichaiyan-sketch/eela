@@ -9,11 +9,11 @@ import Products from './pages/Products';
 import Billing from './pages/Billing';
 import Orders from './pages/Orders';
 import Customers from './pages/Customers';
-import CustomerLedger from './pages/CustomerLedger';
 import CustomerOrderHistory from './pages/CustomerOrderHistory';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
 import Users from './pages/Users';
+import CreateOrderPage from './pages/CreateOrderPage';
 import { AuthContext } from './contexts/AuthContext';
 import Sidebar from './components/Sidebar';
 
@@ -28,9 +28,8 @@ function App() {
             case 'inventory': return <Inventory />;
             case 'products': return <Products />;
             case 'billing': return <Billing />;
-            case 'orders': return <Orders />;
+            case 'orders': return <Orders setActiveTab={setActiveTab} />;
             case 'customers': return <Customers />;
-            case 'ledger': return <CustomerLedger />;
             case 'history': return <CustomerOrderHistory />;
             case 'reports': return <Reports />;
             case 'users': return currentUser?.role === 'admin' ? <Users /> : <Dashboard />;
@@ -40,6 +39,21 @@ function App() {
 
     if (!currentUser) {
         return <Login />;
+    }
+
+    // Full-screen pages (no sidebar)
+    if (activeTab === 'create-order') {
+        return (
+            <InventoryProvider>
+                <ProductsProvider>
+                    <CustomersProvider>
+                        <OrdersProvider>
+                            <CreateOrderPage onBack={() => setActiveTab('orders')} />
+                        </OrdersProvider>
+                    </CustomersProvider>
+                </ProductsProvider>
+            </InventoryProvider>
+        );
     }
 
     return (

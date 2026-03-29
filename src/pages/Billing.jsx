@@ -320,14 +320,14 @@ const Billing = () => {
                                     <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>₹{item.product.SellingPrice.toFixed(2)} x {item.qty}</div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8f9fa', padding: '4px', borderRadius: '8px' }}>
-                                    <button className="secondary" style={{ padding: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => {
+                                    <button className="btn-icon" onClick={() => {
                                         if (item.qty > 1) updateQty(item.product.ProductId, -1);
                                         else removeFromCart(item.product.ProductId);
                                     }}><Minus size={16} /></button>
 
                                     <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
 
-                                    <button className="secondary" style={{ padding: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => updateQty(item.product.ProductId, 1)}><Plus size={16} /></button>
+                                    <button className="btn-icon" onClick={() => updateQty(item.product.ProductId, 1)}><Plus size={16} /></button>
                                 </div>
                             </div>
                         ))}
@@ -373,6 +373,7 @@ const Billing = () => {
                                     <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '4px' }}>Paid</label>
                                     <input 
                                         type="number"
+                                        min="0"
                                         placeholder="Amount"
                                         value={paidAmount}
                                         onChange={e => setPaidAmount(e.target.value)}

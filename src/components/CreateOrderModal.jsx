@@ -342,6 +342,7 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
                                         <label style={{ fontSize: '0.85rem', fontWeight: 500, display: 'block', marginBottom: '4px' }}>Price (₹)</label>
                                         <input
                                             type="number"
+                                            min="0"
                                             placeholder="0.00"
                                             value={customItemPrice}
                                             onChange={e => setCustomItemPrice(e.target.value)}
@@ -530,6 +531,7 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
                                 <span style={{ position: 'absolute', left: '10px', top: '10px', color: '#6b7280' }}>₹</span>
                                 <input 
                                     type="number"
+                                    min="0"
                                     placeholder="0.00"
                                     value={paidAmount}
                                     onChange={(e) => setPaidAmount(e.target.value)}

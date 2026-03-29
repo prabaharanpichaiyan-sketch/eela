@@ -253,6 +253,7 @@ const CustomerLedger = () => {
                                 <CreditCard size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)' }} />
                                 <input
                                     type="number"
+                                    min="0"
                                     placeholder="Enter amount"
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}

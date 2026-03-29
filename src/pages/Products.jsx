@@ -153,7 +153,7 @@ const Products = () => {
         <div className="animate-fade-in">
             <header className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Products</h1>
-                <button className="primary" style={{ width: 'auto' }} onClick={() => setShowForm(true)}>
+                <button className="primary" onClick={() => setShowForm(true)}>
                     <Plus size={20} /> Add Product
                 </button>
             </header>
@@ -166,7 +166,7 @@ const Products = () => {
                 title="Notice"
                 zIndex={2000}
                 footer={
-                    <button className="primary" style={{ width: 'auto' }} onClick={() => setShowErrorModal(false)}>OK</button>
+                    <button className="primary" onClick={() => setShowErrorModal(false)}>OK</button>
                 }
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -183,7 +183,7 @@ const Products = () => {
                 footer={
                     <>
                         <button className="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-                        <button className="primary" style={{ backgroundColor: 'var(--color-danger)', width: 'auto' }} onClick={handleDelete}>Delete</button>
+                        <button className="primary danger" onClick={handleDelete}>Delete</button>
                     </>
                 }
             >
@@ -299,7 +299,7 @@ const Products = () => {
                                                 </td>
                                                 <td style={{ padding: '8px' }}>₹{totalCost.toFixed(2)}</td>
                                                 <td style={{ padding: '8px' }}>
-                                                    <button type="button" className="secondary" style={{ padding: '4px', color: 'red', border: 'none', background: 'transparent' }} onClick={() => handleRemoveIngredient(idx)}>
+                                                    <button type="button" className="btn-icon danger" onClick={() => handleRemoveIngredient(idx)} title="Remove">
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </td>
@@ -316,7 +316,7 @@ const Products = () => {
 
                     <div style={{ display: 'flex', gap: '8px', marginTop: '24px', justifyContent: 'flex-end' }}>
                         <button type="button" className="secondary" onClick={resetForm}>Cancel</button>
-                        <button type="submit" className="primary" style={{ width: 'auto' }}>{isEditing ? 'Update Product' : 'Save Product'}</button>
+                        <button type="submit" className="primary">{isEditing ? 'Update Product' : 'Save Product'}</button>
                     </div>
                 </form>
             </Modal>
@@ -336,10 +336,10 @@ const Products = () => {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="secondary" onClick={() => handleEditClick(product)} style={{ padding: '4px 8px' }}>
+                                    <button className="btn-icon" onClick={() => handleEditClick(product)} title="Edit">
                                         <Edit2 size={16} />
                                     </button>
-                                    <button className="secondary" onClick={() => confirmDelete(product)} style={{ padding: '4px 8px', color: 'var(--color-danger)' }}>
+                                    <button className="btn-icon danger" onClick={() => confirmDelete(product)} title="Delete">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>

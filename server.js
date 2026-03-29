@@ -1,83 +1,20 @@
 import express from 'express';
 import cors from 'cors';
-import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
-// Initialize SQLite database
-const db = new Database(path.join(__dirname, 'database.sqlite'));
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Enable foreign keys
-db.pragma('foreign_keys = ON');
-
-// Initialize schema
-const initDb = () => {
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS Users (
-            id TEXT PRIMARY KEY,
-            username TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            passwordHash TEXT NOT NULL,
-            salt TEXT NOT NULL,
-            role TEXT DEFAULT 'staff',
-            isActive INTEGER DEFAULT 1,
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS Inventory (
-            id TEXT PRIMARY KEY,
-            IngredientName TEXT NOT NULL,
-            Unit TEXT NOT NULL,
-            QuantityAvailable REAL DEFAULT 0,
-            LowStockLimit REAL DEFAULT 0,
-            LastUpdated DATETIME DEFAULT CURRENT_TIMESTAMP,
-            IsActive INTEGER DEFAULT 1
-        );
-
-        CREATE TABLE IF NOT EXISTS Products (
-            id TEXT PRIMARY KEY,
-            ProductName TEXT NOT NULL,
-            SellingPrice REAL NOT NULL,
-            Description TEXT,
-            IsActive INTEGER DEFAULT 1
-        );
-
-        CREATE TABLE IF NOT EXISTS Customers (
-            id TEXT PRIMARY KEY,
-            CustomerName TEXT NOT NULL,
-            PhoneNumber TEXT,
-            Email TEXT,
-            Address TEXT,
-            Notes TEXT,
-            CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-            IsActive INTEGER DEFAULT 1
-        );
-
-        CREATE TABLE IF NOT EXISTS Orders (
-            id TEXT PRIMARY KEY,
-            CustomerName TEXT,
-            CustomerId TEXT,
-            OrderDate TEXT,
-            BillDate TEXT,
-            TotalAmount REAL NOT NULL,
-            PaidAmount REAL DEFAULT 0,
-            BalanceAmount REAL,
-            PaymentType TEXT,
-            PaymentStatus TEXT,
-            OrderStatus TEXT,
-            items TEXT, -- JSON stringified array of items
-            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-    `);
-};
-initDb();
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Generic helper to generate a random ID matching Firebase length (20 chars)
 const generateId = () => {
@@ -95,33 +32,24 @@ const hashPassword = (password, salt) => {
 };
 const generateSalt = () => crypto.randomBytes(16).toString('hex');
 
-// Seed default admin if Users table is empty
-const seedAdmin = () => {
-    const userCount = db.prepare('SELECT COUNT(*) as count FROM Users').get().count;
-    if (userCount === 0) {
-        const id = generateId();
-        const salt = generateSalt();
-        const hash = hashPassword('admin123', salt);
-        const stmt = db.prepare('INSERT INTO Users (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)');
-        stmt.run(id, 'Admin', 'admin@example.com', hash, salt, 'admin');
-        console.log('Default admin seeded: admin@example.com / admin123');
-    }
-}
-seedAdmin();
-
 // --- AUTH ---
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
-    const user = db.prepare('SELECT * FROM Users WHERE email = ? AND isActive = 1').get(email);
+    const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('isactive', 1)
+        .maybeSingle();
     
-    if (!user) {
+    if (error || !user) {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
     
     const hash = hashPassword(password, user.salt);
-    if (hash === user.passwordHash) {
+    if (hash === user.passwordhash) {
         // Exclude sensitive data
-        const { passwordHash, salt, ...userData } = user;
+        const { passwordhash, salt, ...userData } = user;
         res.json({ success: true, user: userData });
     } else {
         res.status(401).json({ error: 'Invalid credentials' });
@@ -129,191 +57,382 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // --- USERS ---
-app.get('/api/users', (req, res) => {
-    const users = db.prepare('SELECT id, username, email, role, isActive, createdAt FROM Users WHERE isActive = 1').all();
+app.get('/api/users', async (req, res) => {
+    const { data: users, error } = await supabase
+        .from('users')
+        .select('id, username, email, role, isactive, createdat')
+        .eq('isactive', 1);
+    
+    if (error) return res.status(500).json({ error: error.message });
     res.json(users);
 });
 
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
     const { username, email, password, role } = req.body;
     
     // Check if email exists
-    const existing = db.prepare('SELECT id FROM Users WHERE email = ?').get(email);
+    const { data: existing } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+
     if (existing) return res.status(400).json({ error: 'Email already exists' });
     
     const id = generateId();
     const salt = generateSalt();
     const hash = hashPassword(password, salt);
     
-    const stmt = db.prepare('INSERT INTO Users (id, username, email, passwordHash, salt, role) VALUES (?, ?, ?, ?, ?, ?)');
-    stmt.run(id, username, email, hash, salt, role || 'staff');
+    const { error } = await supabase
+        .from('users')
+        .insert([{
+            id,
+            username,
+            email,
+            passwordhash: hash,
+            salt,
+            role: role || 'staff'
+        }]);
     
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true, id, username, email, role });
 });
 
-app.put('/api/users/:id/password', (req, res) => {
+app.put('/api/users/:id/password', async (req, res) => {
     const { newPassword } = req.body;
     const salt = generateSalt();
     const hash = hashPassword(newPassword, salt);
     
-    const stmt = db.prepare('UPDATE Users SET passwordHash = ?, salt = ? WHERE id = ?');
-    stmt.run(hash, salt, req.params.id);
+    const { error } = await supabase
+        .from('users')
+        .update({ passwordhash: hash, salt })
+        .eq('id', req.params.id);
     
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.put('/api/users/:id/role', (req, res) => {
+app.put('/api/users/:id/role', async (req, res) => {
     const { role } = req.body;
-    const stmt = db.prepare('UPDATE Users SET role = ? WHERE id = ?');
-    stmt.run(role, req.params.id);
+    const { error } = await supabase
+        .from('users')
+        .update({ role })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.delete('/api/users/:id', (req, res) => {
-    const stmt = db.prepare('UPDATE Users SET isActive = 0 WHERE id = ?');
-    stmt.run(req.params.id);
+app.delete('/api/users/:id', async (req, res) => {
+    const { error } = await supabase
+        .from('users')
+        .update({ isactive: 0 })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
 // --- CUSTOMERS ---
-app.get('/api/customers', (req, res) => {
-    const stmt = db.prepare('SELECT * FROM Customers WHERE IsActive = 1');
-    const customers = stmt.all();
-    // Return id as CustomerId to match original behavior
-    res.json(customers.map(c => ({ ...c, CustomerId: c.id, IsActive: Boolean(c.IsActive) })));
+app.get('/api/customers', async (req, res) => {
+    const { data: customers, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('isactive', 1);
+    
+    if (error) return res.status(500).json({ error: error.message });
+    
+    res.json(customers.map(c => ({ 
+        ...c, 
+        CustomerId: c.id, 
+        IsActive: Boolean(c.isactive),
+        CustomerName: c.customername,
+        PhoneNumber: c.phonenumber,
+        CreatedDate: c.createddate
+    })));
 });
 
-app.post('/api/customers', (req, res) => {
+app.post('/api/customers', async (req, res) => {
     const { CustomerName, PhoneNumber, Email, Address, Notes } = req.body;
     const id = generateId();
-    const CreatedDate = new Date().toISOString();
     
-    const stmt = db.prepare('INSERT INTO Customers (id, CustomerName, PhoneNumber, Email, Address, Notes, CreatedDate, IsActive) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-    stmt.run(id, CustomerName, PhoneNumber, Email, Address, Notes, CreatedDate, 1);
+    const { error } = await supabase
+        .from('customers')
+        .insert([{
+            id,
+            customername: CustomerName,
+            phonenumber: PhoneNumber,
+            email: Email,
+            address: Address,
+            notes: Notes,
+            isactive: 1
+        }]);
     
-    res.json({ id, CustomerId: id, CustomerName, PhoneNumber, Email, Address, Notes, CreatedDate, IsActive: true });
+    if (error) return res.status(500).json({ error: error.message });
+    
+    res.json({ 
+        id, 
+        CustomerId: id, 
+        CustomerName, 
+        PhoneNumber, 
+        Email, 
+        Address, 
+        Notes, 
+        IsActive: true 
+    });
 });
 
-app.put('/api/customers/:id', (req, res) => {
+app.put('/api/customers/:id', async (req, res) => {
     const { CustomerName, PhoneNumber, Email, Address, Notes, IsActive } = req.body;
-    const isActiveInt = IsActive === false ? 0 : 1; // Handle soft delete as well if passed
-    const stmt = db.prepare('UPDATE Customers SET CustomerName = ?, PhoneNumber = ?, Email = ?, Address = ?, Notes = ?, IsActive = ? WHERE id = ?');
-    stmt.run(CustomerName, PhoneNumber, Email, Address, Notes, isActiveInt, req.params.id);
+    const isActiveInt = IsActive === false ? 0 : 1;
+    
+    const { error } = await supabase
+        .from('customers')
+        .update({
+            customername: CustomerName,
+            phonenumber: PhoneNumber,
+            email: Email,
+            address: Address,
+            notes: Notes,
+            isactive: isActiveInt
+        })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-// Used for soft deleting customers
-app.delete('/api/customers/:id', (req, res) => {
-    const stmt = db.prepare('UPDATE Customers SET IsActive = 0 WHERE id = ?');
-    stmt.run(req.params.id);
+app.delete('/api/customers/:id', async (req, res) => {
+    const { error } = await supabase
+        .from('customers')
+        .update({ isactive: 0 })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
 // --- INVENTORY ---
-app.get('/api/inventory', (req, res) => {
-    const stmt = db.prepare('SELECT * FROM Inventory WHERE IsActive = 1');
-    const inventory = stmt.all();
-    res.json(inventory.map(i => ({ ...i, InventoryId: i.id, IsActive: Boolean(i.IsActive) })));
+app.get('/api/inventory', async (req, res) => {
+    const { data: inventory, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .eq('isactive', 1);
+    
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(inventory.map(i => ({ 
+        ...i, 
+        InventoryId: i.id, 
+        IsActive: Boolean(i.isactive),
+        IngredientName: i.ingredientname,
+        QuantityAvailable: i.quantityavailable,
+        LowStockLimit: i.lowstocklimit,
+        LastUpdated: i.lastupdated
+    })));
 });
 
-app.post('/api/inventory', (req, res) => {
+app.post('/api/inventory', async (req, res) => {
     const { IngredientName, Unit, QuantityAvailable, LowStockLimit } = req.body;
     const id = generateId();
-    const LastUpdated = new Date().toISOString();
     
-    const stmt = db.prepare('INSERT INTO Inventory (id, IngredientName, Unit, QuantityAvailable, LowStockLimit, LastUpdated, IsActive) VALUES (?, ?, ?, ?, ?, ?, ?)');
-    stmt.run(id, IngredientName, Unit, QuantityAvailable || 0, LowStockLimit || 0, LastUpdated, 1);
+    const { error } = await supabase
+        .from('inventory')
+        .insert([{
+            id,
+            ingredientname: IngredientName,
+            unit: Unit,
+            quantityavailable: QuantityAvailable || 0,
+            lowstocklimit: LowStockLimit || 0,
+            isactive: 1
+        }]);
     
-    res.json({ id, InventoryId: id, IngredientName, Unit, QuantityAvailable, LowStockLimit, LastUpdated, IsActive: true });
+    if (error) return res.status(500).json({ error: error.message });
+    
+    res.json({ 
+        id, 
+        InventoryId: id, 
+        IngredientName, 
+        Unit, 
+        QuantityAvailable, 
+        LowStockLimit, 
+        IsActive: true 
+    });
 });
 
-app.put('/api/inventory/:id', (req, res) => {
+app.put('/api/inventory/:id', async (req, res) => {
     const { IngredientName, Unit, LowStockLimit, IsActive } = req.body;
     const isActiveInt = IsActive === false ? 0 : 1;
-    const LastUpdated = new Date().toISOString();
+    const lastupdated = new Date().toISOString();
     
-    const stmt = db.prepare('UPDATE Inventory SET IngredientName = ?, Unit = ?, LowStockLimit = ?, IsActive = ?, LastUpdated = ? WHERE id = ?');
-    stmt.run(IngredientName, Unit, LowStockLimit, isActiveInt, LastUpdated, req.params.id);
+    const { error } = await supabase
+        .from('inventory')
+        .update({
+            ingredientname: IngredientName,
+            unit: Unit,
+            lowstocklimit: LowStockLimit,
+            isactive: isActiveInt,
+            lastupdated
+        })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.patch('/api/inventory/:id/stock', (req, res) => {
+app.patch('/api/inventory/:id/stock', async (req, res) => {
     const { QuantityAvailable } = req.body;
-    const LastUpdated = new Date().toISOString();
-    const stmt = db.prepare('UPDATE Inventory SET QuantityAvailable = ?, LastUpdated = ? WHERE id = ?');
-    stmt.run(QuantityAvailable, LastUpdated, req.params.id);
+    const lastupdated = new Date().toISOString();
+    
+    const { error } = await supabase
+        .from('inventory')
+        .update({
+            quantityavailable: QuantityAvailable,
+            lastupdated
+        })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.delete('/api/inventory/:id', (req, res) => {
-    const stmt = db.prepare('UPDATE Inventory SET IsActive = 0 WHERE id = ?');
-    stmt.run(req.params.id);
+app.delete('/api/inventory/:id', async (req, res) => {
+    const { error } = await supabase
+        .from('inventory')
+        .update({ isactive: 0 })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
 // --- PRODUCTS ---
-app.get('/api/products', (req, res) => {
-    const stmt = db.prepare('SELECT * FROM Products WHERE IsActive = 1');
-    const products = stmt.all();
+app.get('/api/products', async (req, res) => {
+    const { data: products, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('isactive', 1);
+    
+    if (error) return res.status(500).json({ error: error.message });
     res.json(products.map(p => ({ 
         ...p, 
         ProductId: p.id, 
-        IsActive: Boolean(p.IsActive),
-        ingredients: p.ingredients ? JSON.parse(p.ingredients) : [] 
+        IsActive: Boolean(p.isactive),
+        ProductName: p.productname,
+        SellingPrice: p.sellingprice,
+        ingredients: p.ingredients ? JSON.parse(p.ingredients) : [],
+        image: p.image || null
     })));
 });
 
-app.post('/api/products', (req, res) => {
-    const { ProductName, SellingPrice, Description, ingredients } = req.body;
+app.post('/api/products', async (req, res) => {
+    const { ProductName, SellingPrice, Description, ingredients, image } = req.body;
     const id = generateId();
     
-    // Attempt column migration if it doesn't exist
-    try { db.exec('ALTER TABLE Products ADD COLUMN ingredients TEXT;'); } catch (e) {}
+    const { error } = await supabase
+        .from('products')
+        .insert([{
+            id,
+            productname: ProductName,
+            sellingprice: SellingPrice,
+            description: Description,
+            isactive: 1,
+            ingredients: ingredients ? JSON.stringify(ingredients) : '[]',
+            image: image || null
+        }]);
     
-    const stmt = db.prepare('INSERT INTO Products (id, ProductName, SellingPrice, Description, IsActive, ingredients) VALUES (?, ?, ?, ?, ?, ?)');
-    stmt.run(id, ProductName, SellingPrice, Description, 1, ingredients ? JSON.stringify(ingredients) : '[]');
+    if (error) return res.status(500).json({ error: error.message });
     
-    res.json({ id, ProductId: id, ProductName, SellingPrice, Description, IsActive: true, ingredients: ingredients || [] });
+    res.json({ 
+        id, 
+        ProductId: id, 
+        ProductName, 
+        SellingPrice, 
+        Description, 
+        IsActive: true, 
+        ingredients: ingredients || [], 
+        image: image || null 
+    });
 });
 
-app.put('/api/products/:id', (req, res) => {
-    const { ProductName, SellingPrice, Description, IsActive, ingredients } = req.body;
+app.put('/api/products/:id', async (req, res) => {
+    const { ProductName, SellingPrice, Description, IsActive, ingredients, image } = req.body;
     const isActiveInt = IsActive === false ? 0 : 1;
-    
-    try { db.exec('ALTER TABLE Products ADD COLUMN ingredients TEXT;'); } catch (e) {}
 
-    const stmt = db.prepare('UPDATE Products SET ProductName = ?, SellingPrice = ?, Description = ?, IsActive = ?, ingredients = ? WHERE id = ?');
-    stmt.run(ProductName, SellingPrice, Description, isActiveInt, ingredients ? JSON.stringify(ingredients) : '[]', req.params.id);
+    const updateData = {
+        productname: ProductName,
+        sellingprice: SellingPrice,
+        description: Description,
+        isactive: isActiveInt,
+        ingredients: ingredients ? JSON.stringify(ingredients) : '[]'
+    };
+    if (image !== undefined) updateData.image = image || null;
+
+    const { error } = await supabase
+        .from('products')
+        .update(updateData)
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.delete('/api/products/:id', (req, res) => {
-    const stmt = db.prepare('UPDATE Products SET IsActive = 0 WHERE id = ?');
-    stmt.run(req.params.id);
+app.patch('/api/products/:id/image', async (req, res) => {
+    const { image } = req.body;
+    const { error } = await supabase
+        .from('products')
+        .update({ image: image || null })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+    const { error } = await supabase
+        .from('products')
+        .update({ isactive: 0 })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
 // --- ORDERS ---
-app.get('/api/orders', (req, res) => {
-    const stmt = db.prepare('SELECT * FROM Orders ORDER BY createdAt DESC');
-    const orders = stmt.all();
+app.get('/api/orders', async (req, res) => {
+    const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('createdat', { ascending: false });
+    
+    if (error) return res.status(500).json({ error: error.message });
     res.json(orders.map(o => ({
         ...o,
         OrderId: o.id,
         BillId: o.id,
+        CustomerName: o.customername,
+        CustomerId: o.customerid,
+        OrderDate: o.orderdate,
+        BillDate: o.billdate,
+        TotalAmount: o.totalamount,
+        PaidAmount: o.paidamount,
+        BalanceAmount: o.balanceamount,
+        PaymentType: o.paymenttype,
+        PaymentStatus: o.paymentstatus,
+        OrderStatus: o.orderstatus,
         items: o.items ? JSON.parse(o.items) : []
     })));
 });
 
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', async (req, res) => {
     const orderData = req.body;
     
-    // Generate Order ID similar to firebase logic: YYYYMMDD + counter
-    // For simplicity, we can query the count of orders today
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-    const countStmt = db.prepare("SELECT COUNT(*) as count FROM Orders WHERE id LIKE ?");
-    const todayCount = countStmt.get(`${dateStr}%`).count;
-    const id = `${dateStr}${String(todayCount + 1).padStart(2, '0')}`;
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const { count } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .ilike('id', `${dateStr}%`);
+    
+    const id = `${dateStr}${String((count || 0) + 1).padStart(2, '0')}`;
 
     const {
         CustomerName, CustomerId, OrderDate, BillDate,
@@ -321,71 +440,93 @@ app.post('/api/orders', (req, res) => {
         PaymentType, PaymentStatus, OrderStatus, items
     } = orderData;
 
-    const createdAt = new Date().toISOString();
+    const { error } = await supabase
+        .from('orders')
+        .insert([{
+            id,
+            customername: CustomerName,
+            customerid: CustomerId,
+            orderdate: OrderDate,
+            billdate: BillDate,
+            totalamount: TotalAmount,
+            paidamount: PaidAmount || 0,
+            balanceamount: BalanceAmount,
+            paymenttype: PaymentType,
+            paymentstatus: PaymentStatus,
+            orderstatus: OrderStatus,
+            items: items ? JSON.stringify(items) : '[]'
+        }]);
 
-    const insertStmt = db.prepare(`
-        INSERT INTO Orders (
-            id, CustomerName, CustomerId, OrderDate, BillDate,
-            TotalAmount, PaidAmount, BalanceAmount, PaymentType,
-            PaymentStatus, OrderStatus, items, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    insertStmt.run(
-        id, CustomerName, CustomerId, OrderDate, BillDate,
-        TotalAmount, PaidAmount, BalanceAmount, PaymentType,
-        PaymentStatus, OrderStatus, items ? JSON.stringify(items) : '[]', createdAt
-    );
-
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true, id });
 });
 
-app.patch('/api/orders/:id/status', (req, res) => {
+app.patch('/api/orders/:id/status', async (req, res) => {
     const { OrderStatus } = req.body;
-    const stmt = db.prepare('UPDATE Orders SET OrderStatus = ? WHERE id = ?');
-    stmt.run(OrderStatus, req.params.id);
+    const { error } = await supabase
+        .from('orders')
+        .update({ orderstatus: OrderStatus })
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
-app.patch('/api/orders/:id/payment', (req, res) => {
+app.patch('/api/orders/:id/payment', async (req, res) => {
     const { PaidAmount, BalanceAmount, PaymentStatus, PaymentType } = req.body;
 
-    const order = db.prepare('SELECT * FROM Orders WHERE id = ?').get(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    const { data: order, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', req.params.id)
+        .maybeSingle();
+    
+    if (fetchError || !order) return res.status(404).json({ error: "Order not found" });
 
-    const pAmount = PaidAmount !== undefined ? PaidAmount : order.PaidAmount;
-    const bAmount = BalanceAmount !== undefined ? BalanceAmount : order.BalanceAmount;
-    const pStatus = PaymentStatus !== undefined ? PaymentStatus : order.PaymentStatus;
-    const pType = PaymentType !== undefined ? PaymentType : order.PaymentType;
+    const updateData = {
+        paidamount: PaidAmount !== undefined ? PaidAmount : order.paidamount,
+        balanceamount: BalanceAmount !== undefined ? BalanceAmount : order.balanceamount,
+        paymentstatus: PaymentStatus !== undefined ? PaymentStatus : order.paymentstatus,
+        paymenttype: PaymentType !== undefined ? PaymentType : order.paymenttype
+    };
 
-    const stmt = db.prepare('UPDATE Orders SET PaidAmount = ?, BalanceAmount = ?, PaymentStatus = ?, PaymentType = ? WHERE id = ?');
-    stmt.run(pAmount, bAmount, pStatus, pType, req.params.id);
+    const { error: updateError } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', req.params.id);
 
+    if (updateError) return res.status(500).json({ error: updateError.message });
     res.json({ success: true });
 });
 
-app.delete('/api/orders/:id', (req, res) => {
-    const stmt = db.prepare('DELETE FROM Orders WHERE id = ?');
-    stmt.run(req.params.id);
+app.delete('/api/orders/:id', async (req, res) => {
+    const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', req.params.id);
+
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true });
 });
 
 // --- CLEAR ALL DATA ---
-app.delete('/api/clear-all', (req, res) => {
+app.delete('/api/clear-all', async (req, res) => {
     try {
-        db.exec(`
-            DELETE FROM Orders;
-            DELETE FROM Products;
-            DELETE FROM Inventory;
-            DELETE FROM Customers;
-        `);
+        await supabase.from('orders').delete().neq('id', '0');
+        await supabase.from('products').delete().neq('id', '0');
+        await supabase.from('inventory').delete().neq('id', '0');
+        await supabase.from('customers').delete().neq('id', '0');
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`API server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+if (process.env.NODE_ENV !== 'production' || !process.env.NETLIFY) {
+    app.listen(PORT, () => {
+        console.log(`API server running on port ${PORT}`);
+    });
+}
+
+export default app;

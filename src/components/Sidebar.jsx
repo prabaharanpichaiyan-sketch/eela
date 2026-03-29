@@ -5,13 +5,11 @@ import {
     ShoppingBag, 
     ClipboardList, 
     Users, 
-    BookOpen, 
     Clock, 
     BarChart3, 
     LogOut,
     ChevronRight,
     ChevronLeft,
-    ChefHat,
     Shield
 } from 'lucide-react';
 import { AuthContext } from '../contexts/AuthContext';
@@ -26,7 +24,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         { id: 'products', label: 'Products', icon: ShoppingBag },
         { id: 'orders', label: 'Orders', icon: ClipboardList },
         { id: 'customers', label: 'Customers', icon: Users },
-        { id: 'ledger', label: 'Ledger', icon: BookOpen },
         { id: 'history', label: 'History', icon: Clock },
         { id: 'reports', label: 'Reports', icon: BarChart3 },
     ];
