@@ -26,10 +26,12 @@ const Products = () => {
     // Form State
     const [formData, setFormData] = useState({ ProductName: '', SellingPrice: 0, Description: '', ingredients: [] });
     const [currentIngredient, setCurrentIngredient] = useState({ InventoryId: '', QuantityRequired: 0 });
+    const [currentUnit, setCurrentUnit] = useState(''); // Tracks the user-selected unit for entry (g vs kg)
 
     const resetForm = () => {
         setFormData({ ProductName: '', SellingPrice: 0, Description: '', ingredients: [] });
         setCurrentIngredient({ InventoryId: '', QuantityRequired: 0 });
+        setCurrentUnit('');
         setIsEditing(false);
         setEditingId(null);
         setShowForm(false);
@@ -69,15 +71,22 @@ const Products = () => {
         const invItem = inventory.find(i => i.InventoryId == currentIngredient.InventoryId || i.id == currentIngredient.InventoryId);
         if (!invItem) return;
 
+        let finalQty = parseFloat(currentIngredient.QuantityRequired);
+        
+        // Handle Unit Conversion
+        if (currentUnit === 'g' && invItem.Unit === 'kg') finalQty /= 1000;
+        if (currentUnit === 'ml' && invItem.Unit === 'l') finalQty /= 1000;
+
         setFormData(prev => ({
             ...prev,
             ingredients: [...prev.ingredients, {
-                ...currentIngredient,
                 InventoryId: currentIngredient.InventoryId,
+                QuantityRequired: finalQty,
                 IngredientName: invItem.IngredientName
             }]
         }));
         setCurrentIngredient({ InventoryId: '', QuantityRequired: 0 });
+        setCurrentUnit('');
     };
 
     const handleRemoveIngredient = (index) => {
@@ -257,11 +266,34 @@ const Products = () => {
                                     value={currentIngredient.QuantityRequired}
                                     onChange={e => setCurrentIngredient({ ...currentIngredient, QuantityRequired: e.target.value })}
                                 />
-                                <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', minWidth: '30px' }}>
-                                    {inventory.find(i => i.InventoryId == currentIngredient.InventoryId)?.Unit || ''}
-                                </span>
+                                {/* Unit Selection Logic */}
+                                {(() => {
+                                    const invItem = inventory.find(i => i.InventoryId == currentIngredient.InventoryId);
+                                    if (!invItem) return null;
+
+                                    const units = [];
+                                    if (invItem.Unit === 'kg') {
+                                        if (!currentUnit) setCurrentUnit('g');
+                                        units.push('g', 'kg');
+                                    } else if (invItem.Unit === 'l') {
+                                        if (!currentUnit) setCurrentUnit('ml');
+                                        units.push('ml', 'l');
+                                    } else {
+                                        return <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', minWidth: '30px' }}>{invItem.Unit}</span>;
+                                    }
+
+                                    return (
+                                        <select 
+                                            value={currentUnit || invItem.Unit}
+                                            onChange={e => setCurrentUnit(e.target.value)}
+                                            style={{ width: 'auto', padding: '4px', fontSize: '0.8rem', height: '100%' }}
+                                        >
+                                            {units.map(u => <option key={u} value={u}>{u}</option>)}
+                                        </select>
+                                    );
+                                })()}
                             </div>
-                            <button type="button" className="secondary" onClick={handleAddIngredient}>Add</button>
+                            <button type="button" className="secondary" onClick={handleAddIngredient} style={{ padding: '0 16px', height: '38px', borderRadius: '8px' }}>Add</button>
                         </div>
 
                         {formData.ingredients.length > 0 && (
@@ -365,7 +397,21 @@ const Products = () => {
                             <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                                 <strong>Recipe:</strong> {(product.ingredients || []).map(i => {
                                     const inv = inventory.find(inv => inv.InventoryId === i.InventoryId);
-                                    return inv ? `${inv.IngredientName} (${i.QuantityRequired}${inv.Unit})` : 'Unknown';
+                                    if (!inv) return 'Unknown';
+                                    
+                                    // Format for readability
+                                    let displayQty = i.QuantityRequired;
+                                    let displayUnit = inv.Unit;
+                                    
+                                    if (inv.Unit === 'kg' && i.QuantityRequired < 1) {
+                                        displayQty = i.QuantityRequired * 1000;
+                                        displayUnit = 'g';
+                                    } else if (inv.Unit === 'l' && i.QuantityRequired < 1) {
+                                        displayQty = i.QuantityRequired * 1000;
+                                        displayUnit = 'ml';
+                                    }
+                                    
+                                    return `${inv.IngredientName} (${Number(displayQty).toFixed(displayQty < 1 ? 2 : 0)}${displayUnit})`;
                                 }).join(', ')}
                             </div>
                         </div>
