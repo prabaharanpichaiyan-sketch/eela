@@ -142,6 +142,22 @@ const Inventory = () => {
         item.IngredientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getHeaderColor = (name) => {
+        const colors = [
+            { bg: '#e0f2fe', text: '#0369a1' }, // Sky
+            { bg: '#fce7f3', text: '#be185d' }, // Pink
+            { bg: '#dcfce7', text: '#15803d' }, // Emerald
+            { bg: '#fef3c7', text: '#b45309' }, // Amber
+            { bg: '#f3e8ff', text: '#7e22ce' }, // Purple
+            { bg: '#ffedd5', text: '#c2410c' }  // Orange
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    };
+
     return (
         <div className="animate-fade-in">
             <header className="mb-6" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -349,14 +365,24 @@ const Inventory = () => {
             <div className="inventory-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {filteredInventory.map(item => {
                     const isLowStock = item.QuantityAvailable <= item.LowStockLimit;
+                    const headerColor = getHeaderColor(item.IngredientName);
+
                     return (
-                        <div key={item.InventoryId} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div key={item.InventoryId} className="card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', height: '100%' }}>
 
                             {/* Header: Name and Status */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'flex-start',
+                                padding: '16px 20px',
+                                background: headerColor.bg,
+                                color: headerColor.text,
+                                borderBottom: '1px solid rgba(0,0,0,0.05)'
+                            }}>
                                 <div>
-                                    <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '4px' }}>{item.IngredientName}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                    <div style={{ fontWeight: 700, fontSize: '1.2rem', marginBottom: '4px' }}>{item.IngredientName}</div>
+                                    <div style={{ fontSize: '0.8rem', opacity: 0.8, fontWeight: 500 }}>
                                         Cost: ₹{item.CostPerUnit ? item.CostPerUnit.toFixed(3) : '0.00'} / {item.Unit}
                                     </div>
                                 </div>
@@ -365,31 +391,38 @@ const Inventory = () => {
                                         padding: '4px 8px',
                                         borderRadius: '12px',
                                         fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        backgroundColor: isLowStock ? '#fee2e2' : '#d1fae5',
-                                        color: isLowStock ? '#b91c1c' : '#047857',
+                                        fontWeight: 700,
+                                        backgroundColor: isLowStock ? '#fee2e2' : 'rgba(255,255,255,0.5)',
+                                        color: isLowStock ? '#b91c1c' : headerColor.text,
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '4px'
+                                        gap: '4px',
+                                        border: isLowStock ? '1px solid #fca5a5' : '1px solid rgba(255,255,255,0.6)'
                                     }}>
                                         {isLowStock ? <AlertTriangle size={12} /> : <CheckCircle size={12} />}
                                         {isLowStock ? 'LOW STOCK' : 'IN STOCK'}
                                     </div>
-                                    <button className="btn-icon" title="Edit Ingredient" onClick={() => openEditModal(item)}><Edit2 size={16} /></button>
-                                    <button className="btn-icon danger" title="Delete Ingredient" onClick={() => confirmDelete(item)}><Trash2 size={16} /></button>
                                 </div>
                             </div>
 
                             {/* Body: Quantity and Actions */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-bg)', padding: '12px', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Available</span>
-                                    <span style={{ fontWeight: 700, fontSize: '1.2rem' }}>{item.QuantityAvailable} <small>{item.Unit}</small></span>
+                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-bg)', padding: '16px', borderRadius: '12px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Available</span>
+                                        <span style={{ fontWeight: 800, fontSize: '1.4rem', color: 'var(--color-text)' }}>{item.QuantityAvailable} <small style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>{item.Unit}</small></span>
+                                    </div>
+
+                                    <button className="secondary" onClick={() => openUpdateModal(item)} style={{ height: '38px', padding: '0 16px', fontWeight: 600 }}>
+                                        Update Qty
+                                    </button>
                                 </div>
 
-                                <button className="secondary" onClick={() => openUpdateModal(item)} style={{ height: '36px', padding: '0 16px' }}>
-                                    Update Qty
-                                </button>
+                                {/* Footer Actions */}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: 'auto' }}>
+                                    <button className="btn-icon" title="Edit Ingredient" onClick={() => openEditModal(item)}><Edit2 size={16} /></button>
+                                    <button className="btn-icon danger" title="Delete Ingredient" onClick={() => confirmDelete(item)}><Trash2 size={16} /></button>
+                                </div>
                             </div>
                         </div>
                     );
