@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUI } from './UIContext';
 
 const ProductsContext = createContext();
 const API_URL = '/api';
@@ -8,6 +9,7 @@ export const useProducts = () => useContext(ProductsContext);
 export const ProductsProvider = ({ children }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { showLoader, hideLoader, showNotification } = useUI();
 
     const fetchProducts = async () => {
         try {
@@ -26,6 +28,7 @@ export const ProductsProvider = ({ children }) => {
     }, []);
 
     const addProduct = async (product) => {
+        showLoader('Adding product...');
         try {
             const res = await fetch(`${API_URL}/products`, {
                 method: 'POST',
@@ -34,16 +37,20 @@ export const ProductsProvider = ({ children }) => {
             });
             if (!res.ok) throw new Error(`Server error: ${res.status}`);
             const newProduct = await res.json();
-            // Re-fetch to ensure UI is in sync with DB
             await fetchProducts();
+            showNotification('Product added successfully!');
             return newProduct;
         } catch (error) {
             console.error("Error adding product:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
     const updateProduct = async (id, updatedProduct) => {
+        showLoader('Updating product...');
         try {
             const res = await fetch(`${API_URL}/products/${id}`, {
                 method: 'PUT',
@@ -51,15 +58,19 @@ export const ProductsProvider = ({ children }) => {
                 body: JSON.stringify(updatedProduct)
             });
             if (!res.ok) throw new Error(`Server error: ${res.status}`);
-            // Re-fetch to ensure UI reflects latest DB state
             await fetchProducts();
+            showNotification('Product updated!');
         } catch (error) {
             console.error("Error updating product:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
     const uploadProductImage = async (id, base64DataUrl) => {
+        showLoader('Uploading image...');
         try {
             const res = await fetch(`${API_URL}/products/${id}/image`, {
                 method: 'PATCH',
@@ -67,27 +78,34 @@ export const ProductsProvider = ({ children }) => {
                 body: JSON.stringify({ image: base64DataUrl })
             });
             if (!res.ok) throw new Error(`Server error: ${res.status}`);
-            // Optimistic local update (image is large, avoid full refetch)
             setProducts(prev => prev.map(p =>
                 (p.ProductId === id || p.id === id) ? { ...p, image: base64DataUrl } : p
             ));
+            showNotification('Image uploaded!');
         } catch (error) {
             console.error("Error uploading product image:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
     const deleteProduct = async (id) => {
+        showLoader('Deleting product...');
         try {
             const res = await fetch(`${API_URL}/products/${id}`, {
                 method: 'DELETE'
             });
             if (!res.ok) throw new Error(`Server error: ${res.status}`);
-            // Re-fetch to ensure UI reflects latest DB state
             await fetchProducts();
+            showNotification('Product deleted successfully!');
         } catch (error) {
             console.error("Error deleting product:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 

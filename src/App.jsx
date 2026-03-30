@@ -3,6 +3,7 @@ import { InventoryProvider } from './contexts/InventoryContext';
 import { ProductsProvider } from './contexts/ProductsContext';
 import { OrdersProvider } from './contexts/OrdersContext';
 import { CustomersProvider } from './contexts/CustomersContext';
+import { UIProvider } from './contexts/UIContext';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import Products from './pages/Products';
@@ -44,36 +45,40 @@ function App() {
     // Full-screen pages (no sidebar)
     if (activeTab === 'create-order') {
         return (
-            <InventoryProvider>
-                <ProductsProvider>
-                    <CustomersProvider>
-                        <OrdersProvider>
-                            <CreateOrderPage onBack={() => setActiveTab('orders')} />
-                        </OrdersProvider>
-                    </CustomersProvider>
-                </ProductsProvider>
-            </InventoryProvider>
+            <UIProvider>
+                <InventoryProvider>
+                    <ProductsProvider>
+                        <CustomersProvider>
+                            <OrdersProvider>
+                                <CreateOrderPage onBack={() => setActiveTab('orders')} />
+                            </OrdersProvider>
+                        </CustomersProvider>
+                    </ProductsProvider>
+                </InventoryProvider>
+            </UIProvider>
         );
     }
 
     return (
-        <InventoryProvider>
-            <ProductsProvider>
-                <CustomersProvider>
-                    <OrdersProvider>
-                        <div className="app-container">
-                        <Sidebar 
-                            activeTab={activeTab} 
-                            setActiveTab={setActiveTab} 
-                        />
-                        <main className="content-area">
-                            {renderContent()}
-                        </main>
-                    </div>
-                    </OrdersProvider>
-                </CustomersProvider>
-            </ProductsProvider>
-        </InventoryProvider>
+        <UIProvider>
+            <InventoryProvider>
+                <ProductsProvider>
+                    <CustomersProvider>
+                        <OrdersProvider>
+                            <div className="app-container">
+                                <Sidebar 
+                                    activeTab={activeTab} 
+                                    setActiveTab={setActiveTab} 
+                                />
+                                <main className="content-area">
+                                    {renderContent()}
+                                </main>
+                            </div>
+                        </OrdersProvider>
+                    </CustomersProvider>
+                </ProductsProvider>
+            </InventoryProvider>
+        </UIProvider>
     );
 }
 

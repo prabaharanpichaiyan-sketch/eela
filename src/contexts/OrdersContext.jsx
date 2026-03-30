@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useInventory } from './InventoryContext';
+import { useUI } from './UIContext';
 
 const OrdersContext = createContext();
 const API_URL = '/api';
@@ -10,6 +11,7 @@ export const OrdersProvider = ({ children }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const { deductStock } = useInventory();
+    const { showLoader, hideLoader, showNotification } = useUI();
 
     const fetchOrders = async () => {
         try {
@@ -28,6 +30,7 @@ export const OrdersProvider = ({ children }) => {
     }, []);
 
     const addOrder = async (orderData, consolidatedIngredients) => {
+        showLoader('Processing order...');
         try {
             await deductStock(consolidatedIngredients);
 
@@ -55,11 +58,15 @@ export const OrdersProvider = ({ children }) => {
                 body: JSON.stringify(newOrder)
             });
             
-            fetchOrders();
+            await fetchOrders();
+            showNotification('Order created successfully!');
             return true;
         } catch (error) {
             console.error("Error adding order:", error);
+            showNotification(error.message || 'Failed to create order', 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
@@ -127,14 +134,19 @@ export const OrdersProvider = ({ children }) => {
     };
 
     const deleteOrder = async (orderId) => {
+        showLoader('Deleting order...');
         try {
             await fetch(`${API_URL}/orders/${orderId}`, {
                 method: 'DELETE'
             });
             setOrders(prev => prev.filter(o => o.id !== orderId));
+            showNotification('Order deleted.');
         } catch (error) {
             console.error("Error deleting order:", error);
+            showNotification(error.message || 'Failed to delete order', 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 

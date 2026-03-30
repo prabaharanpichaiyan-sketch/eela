@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUI } from './UIContext';
 
 const InventoryContext = createContext();
 const API_URL = '/api';
@@ -8,6 +9,7 @@ export const useInventory = () => useContext(InventoryContext);
 export const InventoryProvider = ({ children }) => {
     const [inventory, setInventory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { showLoader, hideLoader, showNotification } = useUI();
 
     const fetchInventory = async () => {
         try {
@@ -26,6 +28,7 @@ export const InventoryProvider = ({ children }) => {
     }, []);
 
     const addIngredient = async (ingredient) => {
+        showLoader('Adding stock item...');
         try {
             const res = await fetch(`${API_URL}/inventory`, {
                 method: 'POST',
@@ -38,13 +41,18 @@ export const InventoryProvider = ({ children }) => {
             }
             const newIngredient = await res.json();
             setInventory(prev => [...prev, newIngredient]);
+            showNotification('Stock item added successfully!');
         } catch (error) {
             console.error("Error adding ingredient:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
     const updateIngredient = async (id, updatedData) => {
+        showLoader('Updating item details...');
         try {
             const res = await fetch(`${API_URL}/inventory/${id}`, {
                 method: 'PUT',
@@ -56,13 +64,18 @@ export const InventoryProvider = ({ children }) => {
                 throw new Error(errorData.error || 'Failed to update ingredient');
             }
             setInventory(prev => prev.map(i => (i.InventoryId === id || i.id === id) ? { ...i, ...updatedData } : i));
+            showNotification('Item details updated!');
         } catch (error) {
             console.error("Error updating ingredient:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
     const updateStock = async (id, quantityData) => {
+        showLoader('Updating stock level...');
         try {
             const item = inventory.find(i => i.id === id || i.InventoryId === id);
             if (!item) return;
@@ -85,9 +98,13 @@ export const InventoryProvider = ({ children }) => {
             }
             
             setInventory(prev => prev.map(i => (i.id === id || i.InventoryId === id) ? { ...i, QuantityAvailable: newQty } : i));
+            showNotification('Stock level updated!');
         } catch (error) {
             console.error("Error updating stock:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
@@ -122,6 +139,7 @@ export const InventoryProvider = ({ children }) => {
     };
 
     const deleteIngredient = async (id) => {
+        showLoader('Removing stock item...');
         try {
             const res = await fetch(`${API_URL}/inventory/${id}`, {
                 method: 'DELETE'
@@ -131,9 +149,13 @@ export const InventoryProvider = ({ children }) => {
                 throw new Error(errorData.error || 'Failed to delete ingredient');
             }
             setInventory(prev => prev.filter(i => i.id !== id && i.InventoryId !== id));
+            showNotification('Stock item removed.');
         } catch (error) {
             console.error("Error deleting ingredient:", error);
+            showNotification(error.message, 'error');
             throw error;
+        } finally {
+            hideLoader();
         }
     };
 
