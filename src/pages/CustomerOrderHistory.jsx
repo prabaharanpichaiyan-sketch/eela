@@ -252,21 +252,36 @@ const CustomerOrderHistory = () => {
                                                                 <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                     <Package size={16} /> Items Ordered
                                                                 </h4>
-                                                                {order.items.map((item, itemIdx) => (
-                                                                    <div key={itemIdx} style={{
-                                                                        display: 'flex', justifyContent: 'space-between',
-                                                                        padding: '8px 12px', background: '#f9fafb',
-                                                                        borderRadius: '6px', marginBottom: '8px'
-                                                                    }}>
-                                                                        <div>
-                                                                            <div style={{ fontWeight: 500 }}>{item.ProductName || getProductName(item.ProductId)}</div>
-                                                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                                                                                Qty: {item.Quantity} × ₹{item.Price.toFixed(2)}
+                                                                {order.items.map((item, itemIdx) => {
+                                                                    const product = products.find(p => p.ProductId === item.ProductId);
+                                                                    return (
+                                                                        <div key={itemIdx} style={{
+                                                                            display: 'flex', justifyContent: 'space-between',
+                                                                            padding: '8px 12px', background: '#f9fafb',
+                                                                            borderRadius: '6px', marginBottom: '8px',
+                                                                            alignItems: 'center'
+                                                                        }}>
+                                                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#fff', border: '1px solid #e5e7eb', overflow: 'hidden', flexShrink: 0 }}>
+                                                                                    {product?.image ? (
+                                                                                        <img src={product.image} alt={product.ProductName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                                    ) : (
+                                                                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6', color: '#9ca3af', fontSize: '0.8rem', fontWeight: 700 }}>
+                                                                                            {product?.ProductName?.charAt(0).toUpperCase() || '?'}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div style={{ fontWeight: 500 }}>{item.ProductName || getProductName(item.ProductId)}</div>
+                                                                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                                                                        Qty: {item.Quantity} × ₹{item.Price.toFixed(2)}
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
+                                                                            <div style={{ fontWeight: 600 }}>₹{(item.Quantity * item.Price).toFixed(2)}</div>
                                                                         </div>
-                                                                        <div style={{ fontWeight: 600 }}>₹{(item.Quantity * item.Price).toFixed(2)}</div>
-                                                                    </div>
-                                                                ))}
+                                                                    );
+                                                                })}
                                                             </div>
                                                             <div style={{ background: '#f8f9fa', padding: '12px', borderRadius: '8px', marginBottom: hasBalance ? '12px' : '0' }}>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>

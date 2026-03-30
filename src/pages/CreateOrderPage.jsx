@@ -318,54 +318,94 @@ const CreateOrderPage = ({ onBack }) => {
                                 No items added yet. Click <strong>Select Product</strong> or <strong>Add Custom Item</strong> to get started.
                             </div>
                         ) : (
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                                <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                                    <tr>
-                                        <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, color: 'var(--color-text-muted)' }}>Item</th>
-                                        <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: 'var(--color-text-muted)' }}>Unit Price</th>
-                                        <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: 'var(--color-text-muted)' }}>Qty</th>
-                                        <th style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: 'var(--color-text-muted)' }}>Subtotal</th>
-                                        <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: 'var(--color-text-muted)' }}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {cart.map(item => (
-                                        <tr key={item.product.ProductId} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                            <td style={{ padding: '12px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                    {item.product.image ? (
-                                                        <img src={item.product.image} alt={item.product.ProductName} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
-                                                    ) : (
-                                                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', fontWeight: 600, fontSize: '0.9rem' }}>
-                                                            {item.product.ProductName.charAt(0).toUpperCase()}
-                                                        </div>
-                                                    )}
-                                                    <span style={{ fontWeight: 500 }}>{item.product.ProductName}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                                {cart.map((item, idx) => (
+                                    <div 
+                                        key={item.product.ProductId + idx} 
+                                        style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '16px', 
+                                            padding: '16px 0', 
+                                            borderBottom: idx === cart.length - 1 ? 'none' : '1px solid #f3f4f6' 
+                                        }}
+                                    >
+                                        {/* Product Image */}
+                                        <div style={{ width: '80px', height: '80px', borderRadius: '12px', background: '#f9fafb', overflow: 'hidden', flexShrink: 0, border: '1px solid #f1f5f9' }}>
+                                            {item.product.image ? (
+                                                <img src={item.product.image} alt={item.product.ProductName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', color: '#059669', fontWeight: 700, fontSize: '1.5rem' }}>
+                                                    {item.product.ProductName.charAt(0).toUpperCase()}
                                                 </div>
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'right', color: '#6b7280' }}>₹{item.product.SellingPrice.toFixed(2)}</td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f9fafb', padding: '2px 6px', borderRadius: '6px', border: '1px solid #e5e7eb' }}>
-                                                    <button onClick={() => { if (item.qty > 1) updateQty(item.product.ProductId, -1); else removeFromCart(item.product.ProductId); }} style={{ padding: '2px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', color: '#374151' }}><Minus size={13} /></button>
-                                                    <span style={{ minWidth: '22px', textAlign: 'center', fontWeight: 600 }}>{item.qty}</span>
-                                                    <button onClick={() => updateQty(item.product.ProductId, 1)} style={{ padding: '2px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', color: '#374151' }}><Plus size={13} /></button>
+                                            )}
+                                        </div>
+
+                                        {/* Product Info */}
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <div style={{ fontWeight: 600, fontSize: '1.05rem', color: '#1f2937' }}>{item.product.ProductName}</div>
+                                            <div style={{ fontSize: '0.9rem', color: '#f59e0b', fontWeight: 500 }}>
+                                                1pcs, ₹{item.product.SellingPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            </div>
+                                            
+                                            {/* Qty Adjuster */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0', marginTop: '4px' }}>
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    background: '#f3f4f6', 
+                                                    borderRadius: '8px', 
+                                                    padding: '2px',
+                                                    border: '1px solid #e5e7eb'
+                                                }}>
+                                                    <button 
+                                                        onClick={() => { if (item.qty > 1) updateQty(item.product.ProductId, -1); else removeFromCart(item.product.ProductId); }}
+                                                        style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: '#4b5563' }}
+                                                    >
+                                                        <Minus size={14} />
+                                                    </button>
+                                                    <span style={{ minWidth: '32px', textAlign: 'center', fontWeight: 700, fontSize: '0.95rem', color: '#111827' }}>{item.qty}</span>
+                                                    <button 
+                                                        onClick={() => updateQty(item.product.ProductId, 1)}
+                                                        style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer', color: '#4b5563' }}
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
                                                 </div>
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)' }}>₹{(item.product.SellingPrice * item.qty).toFixed(2)}</td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                <button onClick={() => removeFromCart(item.product.ProductId)} style={{ padding: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', display: 'flex' }}><Trash2 size={15} /></button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                                <tfoot style={{ borderTop: '2px solid #e5e7eb' }}>
-                                    <tr>
-                                        <td colSpan="3" style={{ padding: '12px', textAlign: 'right', fontWeight: 600 }}>Total</td>
-                                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-primary)' }}>₹{total.toFixed(2)}</td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                            </div>
+                                        </div>
+
+                                        {/* Delete Action */}
+                                        <button 
+                                            onClick={() => removeFromCart(item.product.ProductId)} 
+                                            style={{ 
+                                                width: '40px', 
+                                                height: '40px', 
+                                                borderRadius: '50%', 
+                                                background: '#fee2e2', 
+                                                border: 'none', 
+                                                cursor: 'pointer', 
+                                                color: '#ef4444', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center',
+                                                transition: 'all 0.2s',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                            title="Remove Item"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '2px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#4b5563' }}>Subtotal</span>
+                                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            </div>
                         )}
                     </div>
 

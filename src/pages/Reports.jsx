@@ -243,7 +243,21 @@ const Reports = () => {
                                         </td>
                                         <td style={{ padding: '16px', fontWeight: 500 }}>#{row.BillId}</td>
                                         <td style={{ padding: '16px' }}>{row.CustomerName}</td>
-                                        <td style={{ padding: '16px' }}>{row.ProductName}</td>
+                                        <td style={{ padding: '16px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                {(() => {
+                                                    const product = products.find(p => p.ProductName === row.ProductName);
+                                                    return product?.image ? (
+                                                        <img src={product.image} alt={row.ProductName} style={{ width: '32px', height: '32px', borderRadius: '4px', objectFit: 'cover' }} />
+                                                    ) : (
+                                                        <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', color: '#9ca3af', fontWeight: 700 }}>
+                                                            {row.ProductName.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    );
+                                                })()}
+                                                <span>{row.ProductName}</span>
+                                            </div>
+                                        </td>
                                         <td style={{ padding: '16px', textAlign: 'right' }}>{row.Quantity}</td>
                                         <td style={{ padding: '16px', textAlign: 'right' }}>₹{row.Price.toFixed(2)}</td>
                                         <td style={{ padding: '16px', textAlign: 'right', fontWeight: 500 }}>₹{row.Total.toFixed(2)}</td>

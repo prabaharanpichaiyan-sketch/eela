@@ -2,13 +2,29 @@ import React, { useState } from 'react';
 import { useProducts } from '../contexts/ProductsContext';
 import { useInventory } from '../contexts/InventoryContext';
 import SearchableSelect from '../components/SearchableSelect';
-import { Plus, Trash2, Search, Edit2, Check, X, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Search, Edit2, Check, X, AlertTriangle, Camera, Upload } from 'lucide-react';
 import Modal from '../components/Modal';
 import Loader from '../components/Loader';
 
 const Products = () => {
     const { products, loading: productsLoading, addProduct, updateProduct, deleteProduct } = useProducts();
     const { inventory, loading: inventoryLoading } = useInventory();
+
+    const getHeaderColor = (name) => {
+        const colors = [
+            { bg: '#bae6fd', text: '#0369a1' }, // Sky
+            { bg: '#fbcfe8', text: '#be185d' }, // Pink
+            { bg: '#bbf7d0', text: '#15803d' }, // Emerald
+            { bg: '#fde68a', text: '#b45309' }, // Amber
+            { bg: '#e9d5ff', text: '#7e22ce' }, // Purple
+            { bg: '#fed7aa', text: '#c2410c' }  // Orange
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % (colors.length || 1)];
+    };
 
     if (productsLoading || inventoryLoading) return <Loader text="Loading products..." />;
 
@@ -27,12 +43,29 @@ const Products = () => {
     const [productToDelete, setProductToDelete] = useState(null);
 
     // Form State
-    const [formData, setFormData] = useState({ ProductName: '', SellingPrice: 0, Description: '', ingredients: [] });
+    const [formData, setFormData] = useState({ 
+        ProductName: '', 
+        SellingPrice: 0, 
+        Description: '', 
+        ingredients: [],
+        image: null 
+    });
     const [currentIngredient, setCurrentIngredient] = useState({ InventoryId: '', QuantityRequired: 0 });
     const [currentUnit, setCurrentUnit] = useState(''); // Tracks the user-selected unit for entry (g vs kg)
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({ ...prev, image: reader.result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const resetForm = () => {
-        setFormData({ ProductName: '', SellingPrice: 0, Description: '', ingredients: [] });
+        setFormData({ ProductName: '', SellingPrice: 0, Description: '', ingredients: [], image: null });
         setCurrentIngredient({ InventoryId: '', QuantityRequired: 0 });
         setCurrentUnit('');
         setIsEditing(false);
@@ -45,6 +78,7 @@ const Products = () => {
             ProductName: product.ProductName,
             SellingPrice: product.SellingPrice,
             Description: product.Description || '',
+            image: product.image || null,
             ingredients: product.ingredients.map(ing => ({
                 ...ing,
                 // Ensure we have the name for display if it's missing in saved data
@@ -213,30 +247,81 @@ const Products = () => {
                 maxWidth="900px"
             >
                 <form onSubmit={handleSubmit}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <div className="form-group">
-                            <label>Product Name</label>
-                            <input required value={formData.ProductName} onChange={e => setFormData({ ...formData, ProductName: e.target.value })} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '24px', marginBottom: '20px' }}>
+                        {/* Image Upload Area */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div 
+                                style={{ 
+                                    width: '200px', 
+                                    height: '200px', 
+                                    borderRadius: '12px', 
+                                    background: '#f3f4f6', 
+                                    border: '2px dashed #d1d5db',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden',
+                                    position: 'relative',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => document.getElementById('product-image-upload').click()}
+                            >
+                                {formData.image ? (
+                                    <img src={formData.image} alt="Product Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <>
+                                        <Camera size={40} style={{ color: '#9ca3af', marginBottom: '8px' }} />
+                                        <span style={{ fontSize: '0.8rem', color: '#6b7280', textAlign: 'center', padding: '0 10px' }}>Click to upload product image</span>
+                                    </>
+                                )}
+                                <input 
+                                    id="product-image-upload"
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={handleImageChange}
+                                    style={{ display: 'none' }}
+                                />
+                            </div>
+                            {formData.image && (
+                                <button 
+                                    type="button" 
+                                    className="secondary" 
+                                    style={{ padding: '4px 8px', fontSize: '0.8rem' }}
+                                    onClick={() => setFormData(prev => ({ ...prev, image: null }))}
+                                >
+                                    Remove Image
+                                </button>
+                            )}
                         </div>
-                        <div className="form-group">
-                            <label>Description</label>
-                            <input value={formData.Description} onChange={e => setFormData({ ...formData, Description: e.target.value })} />
-                        </div>
-                    </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                        <div className="form-group">
-                            <label>Selling Price (₹)</label>
-                            <input type="number" step="0.01" required value={formData.SellingPrice} onChange={e => setFormData({ ...formData, SellingPrice: e.target.value })} />
-                        </div>
-                        <div className="form-group">
-                            <label>Est. Cost (₹)</label>
-                            <input disabled value={formEstimatedCost.toFixed(2)} style={{ background: '#eee' }} />
-                        </div>
-                    </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-group">
+                                    <label>Product Name</label>
+                                    <input required value={formData.ProductName} onChange={e => setFormData({ ...formData, ProductName: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <input value={formData.Description} onChange={e => setFormData({ ...formData, Description: e.target.value })} />
+                                </div>
+                            </div>
 
-                    <div style={{ padding: '8px', background: formProfitMargin >= 0 ? '#d4edda' : '#f8d7da', borderRadius: '8px', marginBottom: '16px', fontWeight: 600, color: formProfitMargin >= 0 ? '#155724' : '#721c24' }}>
-                        Profit Margin: ₹{formProfitMargin.toFixed(2)}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="form-group">
+                                    <label>Selling Price (₹)</label>
+                                    <input type="number" step="0.01" required value={formData.SellingPrice} onChange={e => setFormData({ ...formData, SellingPrice: e.target.value })} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Est. Cost (₹)</label>
+                                    <input disabled value={formEstimatedCost.toFixed(2)} style={{ background: '#eee' }} />
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '8px', background: formProfitMargin >= 0 ? '#d4edda' : '#f8d7da', borderRadius: '8px', fontWeight: 600, color: formProfitMargin >= 0 ? '#155724' : '#721c24' }}>
+                                Profit Margin: ₹{formProfitMargin.toFixed(2)}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="form-group" style={{ background: 'var(--color-bg)', padding: '12px', borderRadius: '8px' }}>
@@ -355,66 +440,102 @@ const Products = () => {
                 </form>
             </Modal>
 
-            <div className="product-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            <div className="product-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                 {filteredProducts.map(product => {
                     const estimatedCost = calculateEstimatedCost(product.ingredients);
                     const margin = product.SellingPrice - estimatedCost;
+                    const headerColor = getHeaderColor(product.ProductName);
 
                     return (
-                        <div key={product.ProductId} className="card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                                <div>
-                                    <div style={{ fontWeight: 600, fontSize: '1.2rem' }}>{product.ProductName}</div>
-                                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                                        {product.Description}
-                                    </div>
+                        <div key={product.ProductId} className="card" style={{ display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', height: '100%' }}>
+                            {/* Header */}
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center',
+                                padding: '16px 20px',
+                                background: headerColor.bg,
+                                color: headerColor.text,
+                                borderBottom: '1px solid rgba(0,0,0,0.05)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    {product.image ? (
+                                        <img src={product.image} alt={product.ProductName} style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.1)' }} />
+                                    ) : (
+                                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', border: '1px solid rgba(0,0,0,0.1)' }}>
+                                            {product.ProductName.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div style={{ fontWeight: 700, fontSize: '1.15rem' }}>{product.ProductName}</div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button className="btn-icon" onClick={() => handleEditClick(product)} title="Edit">
+                                    <button className="btn-icon" onClick={() => handleEditClick(product)} title="Edit" style={{ background: 'rgba(255,255,255,0.5)' }}>
                                         <Edit2 size={16} />
                                     </button>
-                                    <button className="btn-icon danger" onClick={() => confirmDelete(product)} title="Delete">
+                                    <button className="btn-icon danger" onClick={() => confirmDelete(product)} title="Delete" style={{ background: 'rgba(255,255,255,0.5)' }}>
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', background: 'var(--color-bg)', padding: '8px', borderRadius: '8px', marginBottom: '8px' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Selling Price</div>
-                                    <div style={{ fontWeight: 700 }}>₹{product.SellingPrice.toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Est. Cost</div>
-                                    <div style={{ fontWeight: 600 }}>₹{estimatedCost.toFixed(2)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Margin</div>
-                                    <div style={{ fontWeight: 600, color: margin >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                                        ₹{margin.toFixed(2)}
+                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {product.Description && (
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: '1.4' }}>
+                                        {product.Description}
+                                    </div>
+                                )}
+
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: '1fr 1fr 1fr', 
+                                    gap: '12px', 
+                                    background: '#f9fafb', 
+                                    padding: '12px', 
+                                    borderRadius: '12px',
+                                    border: '1px solid #f3f4f6'
+                                }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Selling</div>
+                                        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--color-text)' }}>₹{product.SellingPrice.toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Cost</div>
+                                        <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--color-text)' }}>₹{estimatedCost.toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Margin</div>
+                                        <div style={{ fontWeight: 700, fontSize: '1.05rem', color: margin >= 0 ? '#16a34a' : '#ef4444' }}>
+                                            ₹{margin.toFixed(2)}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                                <strong>Recipe:</strong> {(product.ingredients || []).map(i => {
-                                    const inv = inventory.find(inv => inv.InventoryId === i.InventoryId);
-                                    if (!inv) return 'Unknown';
-                                    
-                                    // Format for readability
-                                    let displayQty = i.QuantityRequired;
-                                    let displayUnit = inv.Unit;
-                                    
-                                    if (inv.Unit === 'kg' && i.QuantityRequired < 1) {
-                                        displayQty = i.QuantityRequired * 1000;
-                                        displayUnit = 'g';
-                                    } else if (inv.Unit === 'l' && i.QuantityRequired < 1) {
-                                        displayQty = i.QuantityRequired * 1000;
-                                        displayUnit = 'ml';
-                                    }
-                                    
-                                    return `${inv.IngredientName} (${Number(displayQty).toFixed(displayQty < 1 ? 2 : 0)}${displayUnit})`;
-                                }).join(', ')}
+                                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', borderTop: '1px solid #f3f4f6', paddingTop: '12px' }}>
+                                    <strong style={{ color: 'var(--color-text)', display: 'block', marginBottom: '4px', fontSize: '0.75rem', textTransform: 'uppercase' }}>Recipe Ingredients:</strong>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        {(product.ingredients || []).length > 0 ? (product.ingredients || []).map((i, idx) => {
+                                            const inv = inventory.find(inv => inv.InventoryId === i.InventoryId);
+                                            if (!inv) return null;
+                                            
+                                            let displayQty = i.QuantityRequired;
+                                            let displayUnit = inv.Unit;
+                                            
+                                            if (inv.Unit === 'kg' && i.QuantityRequired < 1) {
+                                                displayQty = i.QuantityRequired * 1000;
+                                                displayUnit = 'g';
+                                            } else if (inv.Unit === 'l' && i.QuantityRequired < 1) {
+                                                displayQty = i.QuantityRequired * 1000;
+                                                displayUnit = 'ml';
+                                            }
+                                            
+                                            return (
+                                                <span key={idx} style={{ background: '#f3f4f6', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem' }}>
+                                                    {inv.IngredientName} ({Number(displayQty).toFixed(0)}{displayUnit})
+                                                </span>
+                                            );
+                                        }) : <span style={{ fontStyle: 'italic' }}>No ingredients defined</span>}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     );

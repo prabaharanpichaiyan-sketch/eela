@@ -269,21 +269,31 @@ const Billing = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                padding: '16px',
+                                padding: '12px',
                                 textAlign: 'center',
                                 border: isOutOfStock ? '1px solid #eee' : '1px solid var(--color-primary)',
                                 opacity: isOutOfStock ? 0.6 : 1,
                                 cursor: isOutOfStock ? 'not-allowed' : 'pointer',
                                 position: 'relative',
-                                background: inCart ? '#f0f9ff' : 'white'
+                                background: inCart ? '#f0f9ff' : 'white',
+                                overflow: 'hidden'
                             }}
                             onClick={() => addToCart(product)}
                         >
-                            <div style={{ fontWeight: 600, marginBottom: '4px', fontSize: '1.1rem' }}>{product.ProductName}</div>
-                            <div style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '1.2rem' }}>₹{product.SellingPrice ? product.SellingPrice.toFixed(2) : '0.00'}</div>
+                            <div style={{ width: '100%', height: '80px', marginBottom: '8px', borderRadius: '8px', background: '#f9fafb', overflow: 'hidden' }}>
+                                {product.image ? (
+                                    <img src={product.image} alt={product.ProductName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, color: '#059669', background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)' }}>
+                                        {product.ProductName.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ fontWeight: 600, marginBottom: '2px', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>{product.ProductName}</div>
+                            <div style={{ color: 'var(--color-primary)', fontWeight: 700, fontSize: '1rem' }}>₹{product.SellingPrice ? product.SellingPrice.toFixed(2) : '0.00'}</div>
 
-                            <div style={{ marginTop: '8px', fontSize: '0.8rem', color: isOutOfStock ? 'var(--color-danger)' : 'var(--color-text-muted)' }}>
-                                {isOutOfStock ? 'Out of Stock' : `Max: ${maxAddable}`}
+                            <div style={{ marginTop: '4px', fontSize: '0.75rem', color: isOutOfStock ? 'var(--color-danger)' : 'var(--color-text-muted)' }}>
+                                {isOutOfStock ? 'Out of Stock' : `${maxAddable} left`}
                             </div>
                         </button>
                     );
@@ -317,9 +327,18 @@ const Billing = () => {
                     <div style={{ overflowY: 'auto', padding: '16px', flex: 1 }}>
                         <div style={{ marginBottom: '16px' }}>
                         {cart.map(item => (
-                            <div key={item.product.ProductId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <div key={item.product.ProductId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '12px' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#f9fafb', overflow: 'hidden', flexShrink: 0 }}>
+                                    {item.product.image ? (
+                                        <img src={item.product.image} alt={item.product.ProductName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 700, color: '#059669', background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)' }}>
+                                            {item.product.ProductName.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </div>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 600 }}>{item.product.ProductName}</div>
+                                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.product.ProductName}</div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>₹{item.product.SellingPrice.toFixed(2)} x {item.qty}</div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8f9fa', padding: '4px', borderRadius: '8px' }}>

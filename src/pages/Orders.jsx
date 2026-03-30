@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useOrders } from '../contexts/OrdersContext';
 import CreateOrderModal from '../components/CreateOrderModal';
+import { useCustomers } from '../contexts/CustomersContext';
+import { useProducts } from '../contexts/ProductsContext';
 import SearchableSelect from '../components/SearchableSelect';
 import Modal from '../components/Modal';
 import DateRangePicker from '../components/DateRangePicker';
@@ -10,6 +12,7 @@ import { Calendar, Download, MoreHorizontal, Plus, Filter, LayoutGrid, RotateCcw
 
 const Orders = ({ setActiveTab }) => {
     const { orders, loading, updateOrderStatus, updatePaymentStatus, deleteOrder } = useOrders();
+    const { products } = useProducts();
     const [selectedTab, setSelectedTab] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrders, setSelectedOrders] = useState([]);
@@ -406,7 +409,60 @@ const Orders = ({ setActiveTab }) => {
                                             {order.PaymentStatus}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '16px' }}>{itemCount} items</td>
+                                    <td style={{ padding: '16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <div style={{ display: 'flex', marginLeft: '4px' }}>
+                                                {order.items.slice(0, 3).map((item, idx) => {
+                                                    const product = products.find(p => p.ProductId === item.ProductId);
+                                                    return (
+                                                        <div 
+                                                            key={idx} 
+                                                            style={{ 
+                                                                width: '24px', 
+                                                                height: '24px', 
+                                                                borderRadius: '4px', 
+                                                                border: '2px solid white', 
+                                                                background: '#f3f4f6', 
+                                                                overflow: 'hidden',
+                                                                marginLeft: idx === 0 ? 0 : '-8px',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                zIndex: 10 - idx
+                                                            }}
+                                                            title={item.ProductName || product?.ProductName}
+                                                        >
+                                                            {product?.image ? (
+                                                                <img src={product.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            ) : (
+                                                                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700, color: '#9ca3af' }}>
+                                                                    {item.ProductName?.charAt(0).toUpperCase() || product?.ProductName?.charAt(0).toUpperCase() || '?'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                                {order.items.length > 3 && (
+                                                    <div style={{ 
+                                                        width: '24px', 
+                                                        height: '24px', 
+                                                        borderRadius: '4px', 
+                                                        border: '2px solid white', 
+                                                        background: '#e5e7eb', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.6rem',
+                                                        fontWeight: 700,
+                                                        color: '#4b5563',
+                                                        marginLeft: '-8px',
+                                                        zIndex: 5
+                                                    }}>
+                                                        +{order.items.length - 3}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginLeft: '8px' }}>{itemCount} items</span>
+                                        </div>
+                                    </td>
                                     <td style={{ padding: '16px' }}>
                                         <span style={{ 
                                             background: getOrderStatusColor(orderStatus), 

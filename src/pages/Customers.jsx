@@ -10,6 +10,22 @@ const Customers = () => {
     const { customers, loading: custLoading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
     const { orders, loading: ordLoading } = useOrders(); // Get Orders
     const [searchTerm, setSearchTerm] = useState('');
+
+    const getHeaderColor = (name) => {
+        const colors = [
+            { bg: '#bae6fd', text: '#0369a1' }, // Sky
+            { bg: '#fbcfe8', text: '#be185d' }, // Pink
+            { bg: '#bbf7d0', text: '#15803d' }, // Emerald
+            { bg: '#fde68a', text: '#b45309' }, // Amber
+            { bg: '#e9d5ff', text: '#7e22ce' }, // Purple
+            { bg: '#fed7aa', text: '#c2410c' }  // Orange
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % (colors.length || 1)];
+    };
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
 
@@ -140,81 +156,91 @@ const Customers = () => {
                             <div 
                                 key={customer.CustomerId} 
                                 className="card" 
-                                style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.2s' }}
+                                style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.2s', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                                 onClick={() => handleOpenDetails(customer)} // Open Details
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                {/* Dynamic Header */}
+                                <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    padding: '16px 20px',
+                                    background: getHeaderColor(customer.CustomerName).bg,
+                                    color: getHeaderColor(customer.CustomerName).text,
+                                    borderBottom: '1px solid rgba(0,0,0,0.05)'
+                                }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <div style={{ 
-                                            width: '40px', height: '40px', borderRadius: '50%', 
-                                            background: '#e0f2fe', color: '#0284c7', 
+                                            width: '32px', height: '32px', borderRadius: '50%', 
+                                            background: 'rgba(255,255,255,0.4)', color: 'inherit', 
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontWeight: 600, fontSize: '1.2rem'
+                                            fontWeight: 700, fontSize: '0.9rem',
+                                            border: '1px solid rgba(0,0,0,0.1)'
                                         }}>
                                             {customer.CustomerName.charAt(0).toUpperCase()}
                                         </div>
-                                        <div>
-                                            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{customer.CustomerName}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                                                Joined: {new Date(customer.CreatedDate).toLocaleDateString()}
+                                        <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{customer.CustomerName}</div>
+                                    </div>
+                                    <div style={{
+                                        width: '12px',
+                                        height: '12px',
+                                        borderRadius: '50%',
+                                        backgroundColor: hasPending ? '#ef4444' : '#22c55e',
+                                        boxShadow: `0 0 10px ${hasPending ? '#ef4444' : '#22c55e'}`,
+                                    }} title={hasPending ? 'Pending Balance' : 'Clear'} />
+                                </div>
+
+                                <div style={{ padding: '20px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <User size={14} /> Joined: {new Date(customer.CreatedDate).toLocaleDateString()}
                                             </div>
+                                            {customer.PhoneNumber && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', fontWeight: 500 }}>
+                                                    <Phone size={14} /> {customer.PhoneNumber}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button 
+                                                className="btn-icon" 
+                                                onClick={(e) => { e.stopPropagation(); handleOpenModal(customer); }}
+                                                title="Edit"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button 
+                                                className="btn-icon danger" 
+                                                onClick={(e) => { e.stopPropagation(); confirmDelete(customer); }}
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button 
-                                            className="btn-icon" 
-                                            onClick={(e) => { e.stopPropagation(); handleOpenModal(customer); }}
-                                            title="Edit"
-                                        >
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button 
-                                            className="btn-icon danger" 
-                                            onClick={(e) => { e.stopPropagation(); confirmDelete(customer); }}
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem', color: '#4b5563', marginBottom: '16px' }}>
-                                    {customer.PhoneNumber && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Phone size={14} /> {customer.PhoneNumber}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ 
-                                    borderTop: '1px solid #f3f4f6', 
-                                    paddingTop: '12px', 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center' 
-                                }}>
-                                    <div style={{ display: 'flex', gap: '16px' }}>
+                                    <div style={{ 
+                                        borderTop: '1px solid #f3f4f6', 
+                                        paddingTop: '16px', 
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '12px',
+                                        background: '#f9fafb',
+                                        padding: '12px',
+                                        borderRadius: '8px'
+                                    }}>
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Orders</div>
-                                            <div style={{ fontWeight: 600 }}>{totalOrders}</div>
+                                            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Orders</div>
+                                            <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{totalOrders}</div>
                                         </div>
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Pending</div>
-                                            <div style={{ fontWeight: 600, color: hasPending ? '#dc2626' : '#16a34a' }}>
+                                            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Balance</div>
+                                            <div style={{ fontWeight: 700, fontSize: '1.1rem', color: hasPending ? '#ef4444' : '#22c55e' }}>
                                                 ₹{pendingAmount.toFixed(0)}
                                             </div>
                                         </div>
                                     </div>
-                                    {hasPending && (
-                                        <span style={{ 
-                                            background: '#fef2f2', color: '#dc2626', 
-                                            fontSize: '0.75rem', fontWeight: 600, 
-                                            padding: '2px 8px', borderRadius: '12px',
-                                            border: '1px solid #fca5a5'
-                                        }}>
-                                            Due
-                                        </span>
-                                    )}
                                 </div>
                             </div>
                         );

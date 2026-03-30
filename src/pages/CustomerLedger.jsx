@@ -9,6 +9,22 @@ const CustomerLedger = () => {
     const { orders, loading: ordLoading, updateOrderPayment } = useOrders();
     const { customers, loading: custLoading } = useCustomers();
 
+    const getHeaderColor = (name) => {
+        const colors = [
+            { bg: '#bae6fd', text: '#0369a1' }, // Sky
+            { bg: '#fbcfe8', text: '#be185d' }, // Pink
+            { bg: '#bbf7d0', text: '#15803d' }, // Emerald
+            { bg: '#fde68a', text: '#b45309' }, // Amber
+            { bg: '#e9d5ff', text: '#7e22ce' }, // Purple
+            { bg: '#fed7aa', text: '#c2410c' }  // Orange
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % (colors.length || 1)];
+    };
+
     const [selectedBill, setSelectedBill] = useState(null);
 
     if (ordLoading || custLoading) return <Loader text="Loading ledger..." />;
@@ -105,42 +121,45 @@ const CustomerLedger = () => {
                             display: 'flex', 
                             justifyContent: 'space-between', 
                             alignItems: 'center',
-                            paddingBottom: '16px',
-                            borderBottom: '2px solid #e5e7eb',
-                            marginBottom: '16px'
+                            padding: '16px 20px',
+                            background: getHeaderColor(customer.customerName).bg,
+                            color: getHeaderColor(customer.customerName).text,
+                            borderBottom: '1px solid rgba(0,0,0,0.05)'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div style={{ 
-                                    width: '48px', 
-                                    height: '48px', 
+                                    width: '40px', 
+                                    height: '40px', 
                                     borderRadius: '50%', 
-                                    background: '#e0f2fe', 
-                                    color: '#0284c7',
+                                    background: 'rgba(255,255,255,0.4)', 
+                                    color: 'inherit',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontWeight: 700,
-                                    fontSize: '1.2rem'
+                                    fontSize: '1.2rem',
+                                    border: '1px solid rgba(0,0,0,0.1)'
                                 }}>
                                     {customer.customerName.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{customer.customerName}</h3>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{customer.customerName}</h3>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.8 }}>
                                         {customer.bills.length} bill{customer.bills.length !== 1 ? 's' : ''}
                                     </p>
                                 </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>
-                                    Total Balance
+                                <div style={{ fontSize: '0.75rem', opacity: 0.8, textTransform: 'uppercase', marginBottom: '2px', letterSpacing: '0.5px' }}>
+                                    Balance Due
                                 </div>
                                 <div style={{ 
-                                    fontSize: '1.5rem', 
-                                    fontWeight: 700,
-                                    color: customer.totalBalance > 0 ? '#dc2626' : '#16a34a'
+                                    fontSize: '1.4rem', 
+                                    fontWeight: 800,
+                                    color: customer.totalBalance > 0 ? '#ef4444' : '#16a34a',
+                                    textShadow: customer.totalBalance > 0 ? '0 0 10px rgba(239,68,68,0.2)' : 'none'
                                 }}>
-                                    ₹{customer.totalBalance.toFixed(2)}
+                                    ₹{customer.totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
                                 </div>
                             </div>
                         </div>
