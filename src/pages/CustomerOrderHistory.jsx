@@ -207,12 +207,12 @@ const CustomerOrderHistory = () => {
                                                 <div style={{
                                                     position: 'absolute', left: '-32px', top: '16px',
                                                     width: '12px', height: '12px', borderRadius: '50%',
-                                                    background: hasBalance ? '#dc2626' : '#16a34a',
+                                                    background: hasBalance ? '#dc2626' : '#9ca3af',
                                                     border: '3px solid white', boxShadow: '0 0 0 2px #e5e7eb'
                                                 }} />
                                                 <div
                                                     className="card"
-                                                    style={{ borderLeft: `4px solid ${hasBalance ? '#dc2626' : '#16a34a'}`, cursor: 'pointer', transition: 'all 0.2s' }}
+                                                    style={{ borderLeft: `4px solid ${hasBalance ? '#dc2626' : '#e5e7eb'}`, cursor: 'pointer', transition: 'all 0.2s' }}
                                                     onClick={() => toggleOrderExpand(order.BillId)}
                                                 >
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isExpanded ? '16px' : '0' }}>

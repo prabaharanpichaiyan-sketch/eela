@@ -181,13 +181,15 @@ const Customers = () => {
                                         </div>
                                         <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{customer.CustomerName}</div>
                                     </div>
-                                    <div style={{
-                                        width: '12px',
-                                        height: '12px',
-                                        borderRadius: '50%',
-                                        backgroundColor: hasPending ? '#ef4444' : '#22c55e',
-                                        boxShadow: `0 0 10px ${hasPending ? '#ef4444' : '#22c55e'}`,
-                                    }} title={hasPending ? 'Pending Balance' : 'Clear'} />
+                                    {hasPending && (
+                                        <div style={{
+                                            width: '12px',
+                                            height: '12px',
+                                            borderRadius: '50%',
+                                            backgroundColor: '#ef4444',
+                                            boxShadow: '0 0 10px #ef4444',
+                                        }} title="Pending Balance" />
+                                    )}
                                 </div>
 
                                 <div style={{ padding: '20px' }}>
