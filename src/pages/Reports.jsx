@@ -12,13 +12,13 @@ const Reports = () => {
     const { customers, loading: custLoading } = useCustomers();
     const { products, loading: prodLoading } = useProducts();
 
-    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading reports..." />;
-
     // Filter states
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState('');
     const [selectedProduct, setSelectedProduct] = useState('');
+
+    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading reports..." />;
 
     // Flatten orders into line items for the report
     const reportData = useMemo(() => {

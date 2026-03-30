@@ -27,9 +27,10 @@ const CustomerLedger = () => {
 
     const [selectedBill, setSelectedBill] = useState(null);
 
-    if (ordLoading || custLoading) return <Loader text="Loading ledger..." />;
     const [paymentAmount, setPaymentAmount] = useState('');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+    if (ordLoading || custLoading) return <Loader text="Loading ledger..." />;
 
     // Group orders by customer
     const getCustomerLedger = () => {

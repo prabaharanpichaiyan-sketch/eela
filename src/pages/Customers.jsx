@@ -29,8 +29,6 @@ const Customers = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
 
-    if (custLoading || ordLoading) return <Loader text="Loading customers..." />;
-
     // Delete Modal State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [customerToDelete, setCustomerToDelete] = useState(null);
@@ -47,6 +45,8 @@ const Customers = () => {
         Address: '',
         Notes: ''
     });
+
+    if (custLoading || ordLoading) return <Loader text="Loading customers..." />;
 
     const handleOpenDetails = (customer) => {
         setSelectedCustomer(customer);

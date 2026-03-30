@@ -13,15 +13,11 @@ const Billing = () => {
     const { addOrder, orders, loading: ordLoading } = useOrders(); // Need orders to calc outstanding
     const { customers, loading: custLoading } = useCustomers();
 
-    if (prodLoading || invLoading || ordLoading || custLoading) return <Loader text="Loading billing data..." fullScreen />;
-
     const [cart, setCart] = useState([]);
     
     // Customer State
     const [customerName, setCustomerName] = useState('');
     const [selectedCustomerId, setSelectedCustomerId] = useState(null);
-    // const [showCustomerDropdown, setShowCustomerDropdown] = useState(false); // Removed
-    // const customerInputRef = useRef(null); // Removed
 
     // Payment State
     const [paymentType, setPaymentType] = useState('Cash');
@@ -29,6 +25,8 @@ const Billing = () => {
 
     const [checkoutStatus, setCheckoutStatus] = useState(null);
     const [errorMessage, setErrorMessage] = useState('');
+
+    if (prodLoading || invLoading || ordLoading || custLoading) return <Loader text="Loading billing data..." fullScreen />;
 
     // Update Paid Amount default when cart changes
     useEffect(() => {

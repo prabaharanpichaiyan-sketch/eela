@@ -17,7 +17,6 @@ const Orders = ({ setActiveTab }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrders, setSelectedOrders] = useState([]);
 
-    if (loading) return <Loader text="Loading orders..." />;
     // Modal state removed - now uses full page
     
     // Delete Modal State
@@ -44,6 +43,8 @@ const Orders = ({ setActiveTab }) => {
     // ... existing status update state ...
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
     const [selectedOrderForStatus, setSelectedOrderForStatus] = useState(null);
+
+    if (loading) return <Loader text="Loading orders..." />;
 
     // Helpers
     const getPaymentStatusColor = (status) => { /* ... existing ... */ 

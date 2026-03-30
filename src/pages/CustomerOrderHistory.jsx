@@ -11,13 +11,13 @@ const CustomerOrderHistory = () => {
     const { customers, loading: custLoading } = useCustomers();
     const { products, loading: prodLoading } = useProducts();
 
-    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading history..." />;
-
     const [activeHistoryTab, setActiveHistoryTab] = useState('history');
     const [expandedOrders, setExpandedOrders] = useState({});
     const [selectedBill, setSelectedBill] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading history..." />;
 
     // ── Order History data ──
     const getCustomerOrderHistory = () => {

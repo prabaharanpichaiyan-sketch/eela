@@ -26,8 +26,6 @@ const Products = () => {
         return colors[Math.abs(hash) % (colors.length || 1)];
     };
 
-    if (productsLoading || inventoryLoading) return <Loader text="Loading products..." />;
-
     const [showForm, setShowForm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -52,6 +50,8 @@ const Products = () => {
     });
     const [currentIngredient, setCurrentIngredient] = useState({ InventoryId: '', QuantityRequired: 0 });
     const [currentUnit, setCurrentUnit] = useState(''); // Tracks the user-selected unit for entry (g vs kg)
+    
+    if (productsLoading || inventoryLoading) return <Loader text="Loading products..." />;
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];

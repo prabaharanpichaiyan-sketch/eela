@@ -9,8 +9,6 @@ const Inventory = () => {
     const { inventory, loading, addIngredient, updateIngredient, updateStock, deleteIngredient } = useInventory();
     const [searchTerm, setSearchTerm] = useState('');
 
-    if (loading) return <Loader text="Loading stock..." />;
-
     // Modal States
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -39,6 +37,8 @@ const Inventory = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [updateAmount, setUpdateAmount] = useState('');
     const [updateType, setUpdateType] = useState('add'); // 'add', 'subtract', 'set'
+
+    if (loading) return <Loader text="Loading stock..." />;
 
     const handleAddSubmit = (e) => {
         e.preventDefault();
