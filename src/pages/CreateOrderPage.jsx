@@ -5,13 +5,16 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useOrders } from '../contexts/OrdersContext';
 import { useCustomers } from '../contexts/CustomersContext';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 import { Plus, Minus, AlertOctagon, Trash2, Calendar, Search, Receipt, ArrowLeft, UserPlus, User, Phone, Mail, MapPin } from 'lucide-react';
 
 const CreateOrderPage = ({ onBack }) => {
-    const { products } = useProducts();
-    const { inventory, checkStock } = useInventory();
+    const { products, loading: prodLoading } = useProducts();
+    const { inventory, checkStock, loading: invLoading } = useInventory();
     const { addOrder } = useOrders();
-    const { customers, addCustomer } = useCustomers();
+    const { customers, addCustomer, loading: custLoading } = useCustomers();
+
+    if (prodLoading || invLoading || custLoading) return <Loader text="Loading order data..." fullScreen />;
 
     const [cart, setCart] = useState([]);
     const [customerName, setCustomerName] = useState('');

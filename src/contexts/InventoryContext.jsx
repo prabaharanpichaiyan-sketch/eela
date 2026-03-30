@@ -32,6 +32,10 @@ export const InventoryProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ingredient)
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to add ingredient');
+            }
             const newIngredient = await res.json();
             setInventory(prev => [...prev, newIngredient]);
         } catch (error) {
@@ -42,11 +46,15 @@ export const InventoryProvider = ({ children }) => {
 
     const updateIngredient = async (id, updatedData) => {
         try {
-            await fetch(`${API_URL}/inventory/${id}`, {
+            const res = await fetch(`${API_URL}/inventory/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to update ingredient');
+            }
             setInventory(prev => prev.map(i => (i.InventoryId === id || i.id === id) ? { ...i, ...updatedData } : i));
         } catch (error) {
             console.error("Error updating ingredient:", error);
@@ -66,11 +74,15 @@ export const InventoryProvider = ({ children }) => {
             
             newQty = Math.max(0, newQty);
 
-            await fetch(`${API_URL}/inventory/${id}/stock`, {
+            const res = await fetch(`${API_URL}/inventory/${id}/stock`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ QuantityAvailable: newQty })
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to update stock');
+            }
             
             setInventory(prev => prev.map(i => (i.id === id || i.InventoryId === id) ? { ...i, QuantityAvailable: newQty } : i));
         } catch (error) {
@@ -111,9 +123,13 @@ export const InventoryProvider = ({ children }) => {
 
     const deleteIngredient = async (id) => {
         try {
-            await fetch(`${API_URL}/inventory/${id}`, {
+            const res = await fetch(`${API_URL}/inventory/${id}`, {
                 method: 'DELETE'
             });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to delete ingredient');
+            }
             setInventory(prev => prev.filter(i => i.id !== id && i.InventoryId !== id));
         } catch (error) {
             console.error("Error deleting ingredient:", error);

@@ -235,7 +235,6 @@ const CreateOrderModal = ({ isOpen, onClose }) => {
             footer={footer}
             zIndex={1100} // Higher than other modals if needed
             maxWidth="900px"
-            closeOnOverlayClick={false}
         >
             <div className="create-order-modal-content" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
                 {errorMessage && (

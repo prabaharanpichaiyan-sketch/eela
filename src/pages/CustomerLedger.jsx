@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { useOrders } from '../contexts/OrdersContext';
 import { useCustomers } from '../contexts/CustomersContext';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 import { DollarSign, Calendar, CreditCard, User, AlertCircle } from 'lucide-react';
 
 const CustomerLedger = () => {
-    const { orders, updateOrderPayment } = useOrders();
-    const { customers } = useCustomers();
+    const { orders, loading: ordLoading, updateOrderPayment } = useOrders();
+    const { customers, loading: custLoading } = useCustomers();
 
     const [selectedBill, setSelectedBill] = useState(null);
+
+    if (ordLoading || custLoading) return <Loader text="Loading ledger..." />;
     const [paymentAmount, setPaymentAmount] = useState('');
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 

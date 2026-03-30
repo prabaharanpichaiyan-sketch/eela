@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Plus, Lock, Trash2, X, Check, Save } from 'lucide-react';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 import SearchableSelect from '../components/SearchableSelect';
 import { Search } from 'lucide-react';
 
@@ -105,7 +106,7 @@ const Users = () => {
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) return <div>Loading users...</div>;
+    if (loading) return <Loader text="Loading users..." />;
     if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
 
     return (
@@ -220,7 +221,6 @@ const Users = () => {
                 isOpen={showAddModal} 
                 onClose={() => setShowAddModal(false)} 
                 title="Add New User"
-                closeOnOverlayClick={false}
             >
                 <form onSubmit={handleAddUser}>
                     <div className="form-group">

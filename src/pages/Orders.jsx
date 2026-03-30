@@ -5,13 +5,16 @@ import SearchableSelect from '../components/SearchableSelect';
 import Modal from '../components/Modal';
 import DateRangePicker from '../components/DateRangePicker';
 import Invoice from '../components/Invoice';
+import Loader from '../components/Loader';
 import { Calendar, Download, MoreHorizontal, Plus, Filter, LayoutGrid, RotateCcw, Search, ChevronDown, CheckSquare, Square, Receipt, Trash2, Printer, ShoppingCart, Package, Wallet } from 'lucide-react';
 
 const Orders = ({ setActiveTab }) => {
-    const { orders, updateOrderStatus, updatePaymentStatus, deleteOrder } = useOrders();
+    const { orders, loading, updateOrderStatus, updatePaymentStatus, deleteOrder } = useOrders();
     const [selectedTab, setSelectedTab] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOrders, setSelectedOrders] = useState([]);
+
+    if (loading) return <Loader text="Loading orders..." />;
     // Modal state removed - now uses full page
     
     // Delete Modal State

@@ -4,12 +4,15 @@ import { useCustomers } from '../contexts/CustomersContext';
 import { useProducts } from '../contexts/ProductsContext';
 import SearchableSelect from '../components/SearchableSelect';
 import DateRangePicker from '../components/DateRangePicker';
+import Loader from '../components/Loader';
 import { Calendar, Download, Filter, BarChart3, Search } from 'lucide-react';
 
 const Reports = () => {
-    const { orders } = useOrders();
-    const { customers } = useCustomers();
-    const { products } = useProducts();
+    const { orders, loading: ordLoading } = useOrders();
+    const { customers, loading: custLoading } = useCustomers();
+    const { products, loading: prodLoading } = useProducts();
+
+    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading reports..." />;
 
     // Filter states
     const [dateRange, setDateRange] = useState({ start: '', end: '' });

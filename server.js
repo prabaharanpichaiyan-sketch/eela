@@ -239,6 +239,7 @@ app.get('/api/inventory', async (req, res) => {
         InventoryId: i.id, 
         IsActive: Boolean(i.isactive),
         IngredientName: i.ingredientname,
+        Unit: i.unit,
         QuantityAvailable: i.quantityavailable,
         LowStockLimit: i.lowstocklimit,
         CostPerUnit: i.costperunit || 0,

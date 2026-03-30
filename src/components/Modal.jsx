@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children, footer, zIndex, closeOnOverlayClick = true, maxWidth }) => {
+const Modal = ({ isOpen, onClose, title, children, footer, zIndex, closeOnOverlayClick = false, maxWidth }) => {
     if (!isOpen) return null;
     
     const handleOverlayClick = () => {

@@ -3,10 +3,13 @@ import { useInventory } from '../contexts/InventoryContext';
 import SearchableSelect from '../components/SearchableSelect';
 import { Plus, Search, AlertTriangle, CheckCircle, X, Trash2, Edit2 } from 'lucide-react';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 
 const Inventory = () => {
-    const { inventory, addIngredient, updateIngredient, updateStock, deleteIngredient } = useInventory();
+    const { inventory, loading, addIngredient, updateIngredient, updateStock, deleteIngredient } = useInventory();
     const [searchTerm, setSearchTerm] = useState('');
+
+    if (loading) return <Loader text="Loading stock..." />;
 
     // Modal States
     const [showAddModal, setShowAddModal] = useState(false);
@@ -276,7 +279,6 @@ const Inventory = () => {
                 isOpen={showAddModal} 
                 onClose={() => { setShowAddModal(false); setShowBulkAdd(false); }} 
                 title="Add New Ingredient"
-                closeOnOverlayClick={false}
             >
                 <form id="add-form" onSubmit={handleAddSubmit}>
                     <div className="form-group">
@@ -439,7 +441,6 @@ const Inventory = () => {
                 isOpen={showUpdateModal}
                 onClose={() => setShowUpdateModal(false)}
                 title={`Update Stock: ${selectedItem?.IngredientName}`}
-                closeOnOverlayClick={false}
                 footer={
                     <>
                         <button className="secondary" onClick={() => setShowUpdateModal(false)}>Cancel</button>
@@ -526,7 +527,6 @@ const Inventory = () => {
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
                 title="Confirm Delete"
-                closeOnOverlayClick={false}
                 footer={
                     <>
                         <button className="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</button>
@@ -557,7 +557,7 @@ const Inventory = () => {
 
             <div className="inventory-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
                 {filteredInventory.map(item => {
-                    const isLowStock = item.QuantityAvailable <= item.LowStockLimit;
+
                     const headerColor = getHeaderColor(item.IngredientName);
 
                     return (
@@ -574,22 +574,26 @@ const Inventory = () => {
                                 borderBottom: '1px solid rgba(0,0,0,0.05)'
                             }}>
                                 <div style={{ fontWeight: 700, fontSize: '1.2rem' }}>{item.IngredientName}</div>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                    <div style={{
-                                        padding: '4px 8px',
-                                        borderRadius: '12px',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 700,
-                                        backgroundColor: isLowStock ? '#fee2e2' : 'rgba(255,255,255,0.5)',
-                                        color: isLowStock ? '#b91c1c' : headerColor.text,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '4px',
-                                        border: isLowStock ? '1px solid #fca5a5' : '1px solid rgba(255,255,255,0.6)'
-                                    }}>
-                                        {isLowStock ? <AlertTriangle size={12} /> : <CheckCircle size={12} />}
-                                        {isLowStock ? 'LOW STOCK' : 'IN STOCK'}
-                                    </div>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    {(() => {
+                                        const isOutOfStock = item.QuantityAvailable <= 0;
+                                        const isLowStock = !isOutOfStock && item.QuantityAvailable <= item.LowStockLimit;
+                                        
+                                        let statusColor = '#22c55e'; // Green
+                                        if (isOutOfStock) statusColor = '#ef4444'; // Red
+                                        else if (isLowStock) statusColor = '#f59e0b'; // Yellow/Amber
+                                        
+                                        return (
+                                            <div style={{
+                                                width: '12px',
+                                                height: '12px',
+                                                borderRadius: '50%',
+                                                backgroundColor: statusColor,
+                                                boxShadow: `0 0 10px ${statusColor}`,
+                                                marginRight: '4px'
+                                            }} />
+                                        );
+                                    })()}
                                 </div>
                             </div>
 

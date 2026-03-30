@@ -3,12 +3,15 @@ import { useOrders } from '../contexts/OrdersContext';
 import { useCustomers } from '../contexts/CustomersContext';
 import { useProducts } from '../contexts/ProductsContext';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 import { ChevronDown, ChevronUp, Calendar, Package, DollarSign, CreditCard, Clock } from 'lucide-react';
 
 const CustomerOrderHistory = () => {
-    const { orders, updateOrderPayment } = useOrders();
-    const { customers } = useCustomers();
-    const { products } = useProducts();
+    const { orders, loading: ordLoading, updateOrderPayment } = useOrders();
+    const { customers, loading: custLoading } = useCustomers();
+    const { products, loading: prodLoading } = useProducts();
+
+    if (ordLoading || custLoading || prodLoading) return <Loader text="Loading history..." />;
 
     const [activeHistoryTab, setActiveHistoryTab] = useState('history');
     const [expandedOrders, setExpandedOrders] = useState({});

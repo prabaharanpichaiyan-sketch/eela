@@ -3,6 +3,7 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useOrders } from '../contexts/OrdersContext';
 import { useProducts } from '../contexts/ProductsContext';
 import { useCustomers } from '../contexts/CustomersContext';
+import Loader from '../components/Loader';
 import { AlertTriangle, TrendingUp, Package, ShoppingBag, BarChart2, Users, DollarSign } from 'lucide-react';
 
 // ── Ring Chart ────────────────────────────────────────────────────────────────
@@ -113,10 +114,12 @@ const RingChart = ({ items, valueKey, labelKey, subLabelKey, colors, title, icon
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 const Dashboard = () => {
-    const { inventory } = useInventory();
-    const { orders } = useOrders();
-    const { products } = useProducts();
-    const { customers } = useCustomers();
+    const { inventory, loading: invLoading } = useInventory();
+    const { orders, loading: ordLoading } = useOrders();
+    const { products, loading: prodLoading } = useProducts();
+    const { customers, loading: custLoading } = useCustomers();
+
+    if (invLoading || ordLoading || prodLoading || custLoading) return <Loader text="Loading dashboard data..." />;
 
     const lowStockItems = inventory.filter(item => item.QuantityAvailable <= item.LowStockLimit);
 

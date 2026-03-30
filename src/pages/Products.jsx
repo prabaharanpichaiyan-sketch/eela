@@ -4,10 +4,13 @@ import { useInventory } from '../contexts/InventoryContext';
 import SearchableSelect from '../components/SearchableSelect';
 import { Plus, Trash2, Search, Edit2, Check, X, AlertTriangle } from 'lucide-react';
 import Modal from '../components/Modal';
+import Loader from '../components/Loader';
 
 const Products = () => {
-    const { products, addProduct, updateProduct, deleteProduct } = useProducts();
-    const { inventory } = useInventory();
+    const { products, loading: productsLoading, addProduct, updateProduct, deleteProduct } = useProducts();
+    const { inventory, loading: inventoryLoading } = useInventory();
+
+    if (productsLoading || inventoryLoading) return <Loader text="Loading products..." />;
 
     const [showForm, setShowForm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -207,7 +210,6 @@ const Products = () => {
                 isOpen={showForm}
                 onClose={resetForm}
                 title={isEditing ? 'Edit Product' : 'Create New Product'}
-                closeOnOverlayClick={false}
                 maxWidth="900px"
             >
                 <form onSubmit={handleSubmit}>

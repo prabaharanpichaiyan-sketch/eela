@@ -3,14 +3,17 @@ import { useCustomers } from '../contexts/CustomersContext';
 import { useOrders } from '../contexts/OrdersContext';
 import Modal from '../components/Modal';
 import CustomerDetails from '../components/CustomerDetails';
+import Loader from '../components/Loader';
 import { Search, Plus, Edit2, Trash2, User, Phone, Mail, MapPin, FileText } from 'lucide-react';
 
 const Customers = () => {
-    const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
-    const { orders } = useOrders(); // Get Orders
+    const { customers, loading: custLoading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
+    const { orders, loading: ordLoading } = useOrders(); // Get Orders
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
+
+    if (custLoading || ordLoading) return <Loader text="Loading customers..." />;
 
     // Delete Modal State
     const [showDeleteModal, setShowDeleteModal] = useState(false);

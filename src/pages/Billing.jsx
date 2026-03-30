@@ -4,13 +4,16 @@ import { useInventory } from '../contexts/InventoryContext';
 import { useOrders } from '../contexts/OrdersContext';
 import { useCustomers } from '../contexts/CustomersContext';
 import SearchableSelect from '../components/SearchableSelect';
+import Loader from '../components/Loader';
 import { Plus, Minus, CheckCircle, AlertOctagon, ShoppingCart, Search, User, MapPin, Phone, Receipt } from 'lucide-react';
 
 const Billing = () => {
-    const { products } = useProducts();
-    const { inventory, checkStock } = useInventory();
-    const { addOrder, orders } = useOrders(); // Need orders to calc outstanding
-    const { customers } = useCustomers();
+    const { products, loading: prodLoading } = useProducts();
+    const { inventory, checkStock, loading: invLoading } = useInventory();
+    const { addOrder, orders, loading: ordLoading } = useOrders(); // Need orders to calc outstanding
+    const { customers, loading: custLoading } = useCustomers();
+
+    if (prodLoading || invLoading || ordLoading || custLoading) return <Loader text="Loading billing data..." fullScreen />;
 
     const [cart, setCart] = useState([]);
     
