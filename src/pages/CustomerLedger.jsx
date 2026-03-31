@@ -37,7 +37,8 @@ const CustomerLedger = () => {
         const ledger = {};
         
         orders.forEach(order => {
-            const key = order.CustomerId || order.CustomerName || 'Walk-in';
+            const trimmedName = order.CustomerName?.trim() || 'Walk-in';
+            const key = order.CustomerId || trimmedName;
             if (!ledger[key]) {
                 ledger[key] = {
                     customerId: order.CustomerId,

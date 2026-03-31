@@ -74,8 +74,9 @@ export const InventoryProvider = ({ children }) => {
         }
     };
 
-    const updateStock = async (id, quantityData) => {
-        showLoader('Updating stock level...');
+    const updateStock = async (id, quantityData, options = {}) => {
+        const { silent = false, noNotify = false } = options;
+        if (!silent) showLoader('Updating stock level...');
         try {
             const item = inventory.find(i => i.id === id || i.InventoryId === id);
             if (!item) return;
@@ -98,13 +99,13 @@ export const InventoryProvider = ({ children }) => {
             }
             
             setInventory(prev => prev.map(i => (i.id === id || i.InventoryId === id) ? { ...i, QuantityAvailable: newQty } : i));
-            showNotification('Stock level updated!');
+            if (!noNotify) showNotification('Stock level updated!');
         } catch (error) {
             console.error("Error updating stock:", error);
             showNotification(error.message, 'error');
             throw error;
         } finally {
-            hideLoader();
+            if (!silent) hideLoader();
         }
     };
 
@@ -124,13 +125,13 @@ export const InventoryProvider = ({ children }) => {
         return { sufficient: missing.length === 0, missing };
     };
 
-    const deductStock = async (requirements) => {
+    const deductStock = async (requirements, options = {}) => {
         try {
             for (const req of requirements) {
                 await updateStock(req.InventoryId, {
                     method: 'subtract',
                     value: req.QuantityRequired
-                });
+                }, options);
             }
         } catch (error) {
             console.error("Error deducting stock:", error);

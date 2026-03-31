@@ -257,8 +257,8 @@ const CreateOrderPage = ({ onBack }) => {
                                 value={customerName}
                                 onChange={val => {
                                     setCustomerName(val);
-                                    const found = customers.find(c => c.CustomerName === val);
-                                    setSelectedCustomerId(found ? found.CustomerId : null);
+                                    const found = customers.find(c => c.CustomerName.trim().toLowerCase() === val.trim().toLowerCase());
+                                    setSelectedCustomerId(found ? (found.CustomerId || found.id) : null);
                                 }}
                                 onSearchChange={val => { setCustomerName(val); setSelectedCustomerId(null); }}
                                 options={customers.filter(c => c.IsActive !== false).map(c => ({ value: c.CustomerName, label: c.CustomerName, subLabel: c.PhoneNumber }))}

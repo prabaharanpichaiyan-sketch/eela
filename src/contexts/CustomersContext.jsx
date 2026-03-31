@@ -56,7 +56,7 @@ export const CustomersProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
-            setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...updatedData } : c));
+            setCustomers(prev => prev.map(c => (c.id === id || (c.CustomerId && (c.CustomerId === id || c.CustomerId.toString() === id.toString()))) ? { ...c, ...updatedData } : c));
             showNotification('Customer info updated!');
         } catch (error) {
             console.error("Error updating customer:", error);
@@ -73,7 +73,7 @@ export const CustomersProvider = ({ children }) => {
             await fetch(`${API_URL}/customers/${id}`, {
                 method: 'DELETE'
             });
-            setCustomers(prev => prev.filter(c => c.id !== id));
+            setCustomers(prev => prev.filter(c => (c.id !== id && (c.CustomerId === undefined || (c.CustomerId !== id && c.CustomerId.toString() !== id.toString())))));
             showNotification('Customer record deleted.');
         } catch (error) {
             console.error("Error deleting customer:", error);

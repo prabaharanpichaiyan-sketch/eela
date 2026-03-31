@@ -82,10 +82,15 @@ const Customers = () => {
     const handleSave = () => {
         if (!formData.CustomerName.trim()) return;
 
+        const finalData = {
+            ...formData,
+            CustomerName: formData.CustomerName.trim()
+        };
+
         if (editingCustomer) {
-            updateCustomer(editingCustomer.CustomerId, formData);
+            updateCustomer(editingCustomer.id || editingCustomer.CustomerId, finalData);
         } else {
-            addCustomer(formData);
+            addCustomer(finalData);
         }
         setIsModalOpen(false);
     };
@@ -147,14 +152,17 @@ const Customers = () => {
                 ) : (
                     filteredCustomers.map(customer => {
                         // Calculate Stats
-                        const customerOrders = orders.filter(o => o.CustomerId === customer.CustomerId || o.CustomerName === customer.CustomerName);
+                        const customerOrders = orders.filter(o => 
+                            (o.CustomerId && (o.CustomerId === customer.id || o.CustomerId === customer.CustomerId || o.CustomerId.toString() === customer.id?.toString() || o.CustomerId.toString() === customer.CustomerId?.toString())) || 
+                            (o.CustomerName && customer.CustomerName && o.CustomerName.trim().toLowerCase() === customer.CustomerName.trim().toLowerCase())
+                        );
                         const totalOrders = customerOrders.length;
                         const pendingAmount = customerOrders.reduce((sum, o) => sum + (o.BalanceAmount || 0), 0);
                         const hasPending = pendingAmount > 0;
 
                         return (
                             <div 
-                                key={customer.CustomerId} 
+                                key={customer.id || customer.CustomerId} 
                                 className="card" 
                                 style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.2s', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                                 onClick={() => handleOpenDetails(customer)} // Open Details

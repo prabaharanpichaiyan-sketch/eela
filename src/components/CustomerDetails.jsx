@@ -10,7 +10,10 @@ const CustomerDetails = ({ customer, isOpen, onClose, onEdit }) => {
     if (!customer) return null;
 
     // Filter orders for this customer
-    const customerOrders = orders.filter(o => o.CustomerId === customer.CustomerId || o.CustomerName === customer.CustomerName);
+    const customerOrders = orders.filter(o => 
+        (o.CustomerId && (o.CustomerId === customer.id || o.CustomerId === customer.CustomerId || o.CustomerId.toString() === customer.id?.toString() || o.CustomerId.toString() === customer.CustomerId?.toString())) || 
+        (o.CustomerName && customer.CustomerName && o.CustomerName.trim().toLowerCase() === customer.CustomerName.trim().toLowerCase())
+    );
     
     // Sort orders by date desc
     customerOrders.sort((a, b) => new Date(b.BillDate) - new Date(a.BillDate));

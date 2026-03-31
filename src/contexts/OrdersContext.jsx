@@ -32,7 +32,7 @@ export const OrdersProvider = ({ children }) => {
     const addOrder = async (orderData, consolidatedIngredients) => {
         showLoader('Processing order...');
         try {
-            await deductStock(consolidatedIngredients);
+            await deductStock(consolidatedIngredients, { silent: true, noNotify: true });
 
             const totalAmount = orderData.TotalAmount;
             const paidAmount = orderData.PaidAmount || 0;
@@ -70,14 +70,14 @@ export const OrdersProvider = ({ children }) => {
         }
     };
 
-    const updateOrderStatus = async (orderId, newStatus) => {
+    const updateOrderStatus = async (orderId, newStatus) => { // orderId might be BillId or id
         try {
             await fetch(`${API_URL}/orders/${orderId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ OrderStatus: newStatus })
             });
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, OrderStatus: newStatus } : o));
+            setOrders(prev => prev.map(o => (o.id === orderId || o.BillId === orderId || o.id?.toString() === orderId?.toString() || o.BillId?.toString() === orderId?.toString()) ? { ...o, OrderStatus: newStatus } : o));
         } catch (error) {
             console.error("Error updating order status:", error);
             throw error;
@@ -91,7 +91,7 @@ export const OrdersProvider = ({ children }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ PaymentStatus: newStatus })
             });
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, PaymentStatus: newStatus } : o));
+            setOrders(prev => prev.map(o => (o.id === orderId || o.BillId === orderId || o.id?.toString() === orderId?.toString() || o.BillId?.toString() === orderId?.toString()) ? { ...o, PaymentStatus: newStatus } : o));
         } catch (error) {
             console.error("Error updating payment status:", error);
             throw error;
@@ -100,7 +100,7 @@ export const OrdersProvider = ({ children }) => {
 
     const updateOrderPayment = async (orderId, paidAmount, paymentType) => {
         try {
-            const order = orders.find(o => o.id === orderId || o.OrderId === orderId);
+            const order = orders.find(o => o.id === orderId || o.BillId === orderId || o.OrderId === orderId || o.id?.toString() === orderId?.toString() || o.BillId?.toString() === orderId?.toString());
             if (!order) return;
 
             const currentPaid = order.PaidAmount || 0;
@@ -126,7 +126,7 @@ export const OrdersProvider = ({ children }) => {
                 body: JSON.stringify(updateData)
             });
             
-            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updateData } : o));
+            setOrders(prev => prev.map(o => (o.id === orderId || o.BillId === orderId || o.id?.toString() === orderId?.toString() || o.BillId?.toString() === orderId?.toString()) ? { ...o, ...updateData } : o));
         } catch (error) {
             console.error("Error updating order payment:", error);
             throw error;
@@ -139,7 +139,7 @@ export const OrdersProvider = ({ children }) => {
             await fetch(`${API_URL}/orders/${orderId}`, {
                 method: 'DELETE'
             });
-            setOrders(prev => prev.filter(o => o.id !== orderId));
+            setOrders(prev => prev.filter(o => (o.id !== orderId && o.BillId !== orderId && o.id?.toString() !== orderId?.toString() && o.BillId?.toString() !== orderId?.toString())));
             showNotification('Order deleted.');
         } catch (error) {
             console.error("Error deleting order:", error);
